@@ -5,6 +5,7 @@ import com.focs.auctionfriend.data.services.SquadraService;
 import com.focs.auctionfriend.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
@@ -29,6 +30,7 @@ import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
+import com.vaadin.flow.router.RouteParameters;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -84,7 +86,6 @@ public class SquadreView extends Div {
         VerticalLayout content = new VerticalLayout();
         content.setPadding(true);
         content.setSpacing(true);
-        content.add(new H2("Aggiungi squadra"));
 
         TextField squadraNameField = new TextField("Nome squadra");
         content.add(squadraNameField);
@@ -108,11 +109,15 @@ public class SquadreView extends Div {
         });
         confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         content.add(confirmButton);
+        content.setAlignSelf(FlexComponent.Alignment.CENTER, confirmButton);
+
+        dialog.setHeaderTitle("Aggiungi una squadra");
 
         // Pulsante per chiudere il dialog
-        Button closeButton = new Button("x", event -> dialog.close());
-        closeButton.addClassName("close-button");
-        content.add(closeButton);
+        Button closeButton = new Button(new Icon("lumo", "cross"),
+                (e) -> dialog.close());
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        dialog.getHeader().add(closeButton);
 
         dialog.add(content);
         dialog.open();
@@ -127,22 +132,45 @@ public class SquadreView extends Div {
         ValueProvider<Squadra, String> numeroGiocatoriProvider = squadra -> squadraService.getNumeroGiocatori(squadra);
         grid.addColumn(numeroGiocatoriProvider).setHeader("Rosa");
 
-        // Aggiungi il bottone per la modifica
+        //modifica
         grid.addComponentColumn(squadra -> {
             Button editButton = new Button("Modifica");
             editButton.addClickListener(e -> {
-                // Logica per aprire la finestra di modifica della squadra
-                // Implementa questa logica per il tuo caso specifico
+                // Reindirizza all'URL della vista di modifica con il parametro squadraId come stringa
+                UI.getCurrent().navigate(EditSquadraView.class, squadra.getId()+"");
             });
             return editButton;
         }).setHeader("");
 
-        // Aggiungi il bottone per l'eliminazione
+
+        //elimina
+        // Elimina
         grid.addComponentColumn(squadra -> {
             Button deleteButton = new Button("Elimina");
             deleteButton.addClickListener(e -> {
-                // Logica per eliminare la squadra
-                // Implementa questa logica per il tuo caso specifico
+                // Crea un dialog di conferma per l'eliminazione della squadra
+                Dialog confirmDialog = new Dialog();
+                confirmDialog.setCloseOnEsc(false);
+                confirmDialog.setCloseOnOutsideClick(false);
+
+                VerticalLayout confirmContent = new VerticalLayout();
+                confirmContent.setSpacing(true);
+
+                confirmContent.add(new H2("Conferma Eliminazione"));
+                confirmContent.add(new Text("Sei sicuro di voler eliminare questa squadra?"));
+
+                Button cancelButton = new Button("Annulla", event -> confirmDialog.close());
+                Button deleteConfirmButton = new Button("Elimina", event -> {
+                    // Esegui l'eliminazione della squadra e aggiorna la griglia
+                    squadraService.deleteSquadra(squadra.getId());
+                    squadre.remove(squadra);
+                    grid.setItems(squadre);
+                    confirmDialog.close();
+                });
+
+                confirmContent.add(new HorizontalLayout(cancelButton, deleteConfirmButton));
+                confirmDialog.add(confirmContent);
+                confirmDialog.open();
             });
             return deleteButton;
         }).setHeader("");
@@ -152,10 +180,10 @@ public class SquadreView extends Div {
 
         // Imposta l'altezza massima della griglia per farla scrollable
         grid.setMaxHeight("calc(100vh - 150px)"); // 150px è l'altezza del pulsante "Aggiungi squadra +"
-        
+
         return grid;
     }
-    
+
 
 
 }

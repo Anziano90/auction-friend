@@ -44,3 +44,13 @@ html {
     --lumo-font-family: Abel;
 
 }
+
+
+.squadre-view {
+    margin: 0 1em 0 1em !important;
+    overflow-x: auto !important;
+    width: auto !important;
+}
+
+
+
