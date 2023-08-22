@@ -82,6 +82,7 @@ public class SquadraService {
 
     /**
      * il metodo ripristina i crediti della squadra che sta svincolando un giocatore
+     * e rimuove il giocatore selezionato
      *
      * @param squadra
      * @param giocatoreDaSvincolare
@@ -92,14 +93,10 @@ public class SquadraService {
         Squadra managedSquadra = em.find(Squadra.class, squadra.getId());
         Giocatore managedGiocatore = em.find(Giocatore.class, giocatoreDaSvincolare.getId());
         if (managedSquadra != null && managedSquadra.getListaGiocatoriAcquistati().contains(managedGiocatore)) {
-            // Rimuovi il giocatore dalla lista
             managedSquadra.getListaGiocatoriAcquistati().remove(managedGiocatore);
-            // Aggiorna i crediti della squadra
             managedSquadra.setCrediti(managedSquadra.getCrediti() + managedGiocatore.getPrezzoAcquisto());
-            // Rimuovi il riferimento del giocatore alla squadra
             managedGiocatore.setPrezzoAcquisto(0);
             managedGiocatore.setSquadraProprietaria(null);
-            // Non c'è bisogno di em.merge(), poiché le entità sono già gestite dall'EntityManager
             return true;
         }
         return false;
