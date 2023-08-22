@@ -4,6 +4,7 @@ import com.focs.auctionfriend.data.entities.Giocatore;
 import com.focs.auctionfriend.data.entities.Squadra;
 import com.focs.auctionfriend.data.services.GiocatoreService;
 import com.focs.auctionfriend.data.services.SquadraService;
+import com.focs.auctionfriend.data.util.Ruolo;
 import com.focs.auctionfriend.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -13,8 +14,10 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
@@ -42,6 +45,8 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
 
         giocatoriGrid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto");
 
+        giocatoriGrid.setAllRowsVisible(true);
+
         Button acquistaGiocatoreButton = new Button("Acquista giocatore", event -> openAcquistaGiocatoreDialog());
         acquistaGiocatoreButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         acquistaGiocatoreButton.addClassName("fixed-button");
@@ -52,8 +57,8 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
 
     private void openAcquistaGiocatoreDialog() {
         Dialog dialog = new Dialog();
-        dialog.setCloseOnOutsideClick(false);
-        dialog.setCloseOnEsc(false);
+        dialog.setCloseOnOutsideClick(true);
+        dialog.setCloseOnEsc(true);
 
         // Contenuto del dialog simile a quello nella vista ListoneView
         VerticalLayout content = new VerticalLayout();
@@ -68,19 +73,16 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         Checkbox difensoreFilter = new Checkbox("D");
         Checkbox centrocampistaFilter = new Checkbox("C");
         Checkbox attaccanteFilter = new Checkbox("A");
-        Checkbox svincolatiFilter = new Checkbox("SV");
 
         portiereFilter.setTooltipText("Portiere");
         difensoreFilter.setTooltipText("Difensore");
         centrocampistaFilter.setTooltipText("Centrocampista");
         attaccanteFilter.setTooltipText("Attaccante");
-        svincolatiFilter.setTooltipText("Svincolato");
 
         // Layout per i checkbox
         FlexLayout checkboxLayout = new FlexLayout(
                 portiereFilter, difensoreFilter,
-                centrocampistaFilter, attaccanteFilter,
-                svincolatiFilter
+                centrocampistaFilter, attaccanteFilter
         );
         checkboxLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         checkboxLayout.getStyle().set("margin-left", "1em");
@@ -102,8 +104,7 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                     portiereFilter.getValue(),
                     difensoreFilter.getValue(),
                     centrocampistaFilter.getValue(),
-                    attaccanteFilter.getValue(),
-                    svincolatiFilter.getValue());
+                    attaccanteFilter.getValue(), true);
 
             ListDataProvider<Giocatore> dataProvider = DataProvider.ofCollection(filteredGiocatori);
             giocatoriDialogGrid.setDataProvider(dataProvider);
@@ -120,21 +121,8 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
             Giocatore giocatoreSelezionato = giocatoriDialogGrid.asSingleSelect().getValue();
 
             if (giocatoreSelezionato != null) {
-                // Aggiorna il giocatore
-                Optional<Giocatore> giocatoreDaAggiornare = giocatoreService.getGiocatoreById(giocatoreSelezionato.getId());
-                if (giocatoreDaAggiornare.isPresent()) {
-                    giocatoreDaAggiornare.get().setSquadraProprietaria(squadra);
-                    giocatoreService.saveGiocatore(giocatoreDaAggiornare.get());
-                    // Aggiungi il giocatore alla lista dei giocatori acquistati della squadra
-                    squadra.getListaGiocatoriAcquistati().add(giocatoreDaAggiornare.get());
-                    squadraService.saveSquadra(squadra);
-                    // Chiudi il dialog dopo l'acquisto
-                    dialog.close();
-                    // Aggiorna la griglia dei giocatori nella schermata principale
-                    giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati());
-                } else {
-                    Notification.show("Qualcosa è andato storto durante l'acquisto.");
-                }
+                dialog.removeAll();
+                dialog.add(confirmPurchaseContent(giocatoreSelezionato, dialog));
             } else {
                 // Mostra un messaggio di errore se nessun giocatore è selezionato
                 Notification.show("Seleziona un giocatore prima di procedere all'acquisto.");
@@ -157,7 +145,84 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         dialog.open();
     }
 
+    private Component confirmPurchaseContent(Giocatore giocatoreSelezionato, Dialog dialog) {
+        VerticalLayout confirmPurchaseDialog = new VerticalLayout();
+        confirmPurchaseDialog.setPadding(true);
+        confirmPurchaseDialog.setSpacing(true);
 
+        TextField purchasePriceField = new TextField("Prezzo di acquisto");
+        purchasePriceField.setValue("1");
+        confirmPurchaseDialog.add(purchasePriceField);
+
+        dialog.getHeader().removeAll();
+
+        Button confirmPurchaseButton = new Button("Conferma acquisto", event -> {
+            String purchasePrice = purchasePriceField.getValue();
+            if(purchasePrice != null && !purchasePrice.isEmpty()){
+
+                //Controllo se il giocatore è acquistabile
+
+                //Controllo se ho abbastanza crediti
+
+                if (squadra.getCrediti() < Integer.parseInt(purchasePrice)){
+                    Notification.show("Crediti insufficienti").setPosition(Notification.Position.TOP_END);
+                }
+
+                //Controllo se ho abbastanza slot
+
+                else if (giocatoreSelezionato.getRuolo().equals(Ruolo.P) && !squadraService.hoSlotPorta(squadra)) {
+                    Notification.show("Hai già 3 portieri").setPosition(Notification.Position.TOP_END);
+                }
+                else if (giocatoreSelezionato.getRuolo().equals(Ruolo.D) && !squadraService.hoSlotDifesa(squadra)) {
+                    Notification.show("Hai già 8 difensori").setPosition(Notification.Position.TOP_END);
+                }
+                else if (giocatoreSelezionato.getRuolo().equals(Ruolo.C) && !squadraService.hoSlotCentrocampo(squadra)) {
+                    Notification.show("Hai già 8 centrocampisti").setPosition(Notification.Position.TOP_END);
+                }
+                else if (giocatoreSelezionato.getRuolo().equals(Ruolo.A) && !squadraService.hoSlotAttacco(squadra)) {
+                    Notification.show("Hai già 6 attaccanti").setPosition(Notification.Position.TOP_END);
+                }
+                else {
+                    // Aggiorna il giocatore
+                    Optional<Giocatore> giocatoreDaAggiornare = giocatoreService.getGiocatoreById(giocatoreSelezionato.getId());
+                    if (giocatoreDaAggiornare.isPresent()) {
+                        giocatoreDaAggiornare.get().setSquadraProprietaria(squadra);
+                        giocatoreDaAggiornare.get().setPrezzoAcquisto(Integer.parseInt(purchasePrice));
+                        giocatoreService.saveGiocatore(giocatoreDaAggiornare.get());
+                        // Aggiungi il giocatore alla lista dei giocatori acquistati della squadra
+                        squadra.getListaGiocatoriAcquistati().add(giocatoreDaAggiornare.get());
+                        squadra.setCrediti(squadra.getCrediti() - Integer.parseInt(purchasePrice));
+                        squadraService.saveSquadra(squadra);
+                        // Chiudi il dialog dopo l'acquisto
+                        dialog.close();
+                        Notification.show("Acquisto confermato!").setPosition(Notification.Position.TOP_END);
+                        // Aggiorna la griglia dei giocatori nella schermata principale
+                        giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati());
+                    } else {
+                        Notification.show("Qualcosa è andato storto durante l'acquisto.").setPosition(Notification.Position.TOP_END);
+                    }
+                }
+            }
+            else {
+                Notification.show("Inserisci il prezzo di acquisto.").setPosition(Notification.Position.TOP_END);
+            }
+        });
+        confirmPurchaseButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Button cancelButton = new Button("Annulla", event -> {
+            dialog.close();
+        });
+
+        // Aggiungi il componente per i pulsanti nella parte inferiore del layout
+        HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton, confirmPurchaseButton);
+        buttonLayout.setSpacing(true);
+        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        confirmPurchaseDialog.add(purchasePriceField, buttonLayout);
+
+        dialog.setHeaderTitle("Conferma acquisto");
+
+        return confirmPurchaseDialog;
+    }
 
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
@@ -171,7 +236,7 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
 
                 // Aggiungi pulsanti di modifica e cancellazione per ciascun giocatore
                 giocatoriGrid.addComponentColumn(this::createModificaPrezzoAcquistoButton).setHeader("");
-                giocatoriGrid.addComponentColumn(this::createDeleteButton).setHeader("");
+                giocatoriGrid.addComponentColumn(this::createSvincolaButton).setHeader("");
             }
         }
     }
@@ -184,12 +249,22 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         return editButton;
     }
 
-    private Button createDeleteButton(Giocatore giocatore) {
+    private Button createSvincolaButton(Giocatore giocatore) {
         Button deleteButton = new Button(new Icon("lumo", "cross"));
         deleteButton.addClickListener(e -> {
-            // Implementa la logica di cancellazione del giocatore
+            boolean flag = squadraService.ridaiSoldiESvincola(squadra, giocatore);
+            if (flag) {
+                squadra.getListaGiocatoriAcquistati().remove(giocatore); // Rimuovi il giocatore dalla lista
+                giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati()); // Aggiorna la griglia
+                Notification notification = Notification.show("Giocatore svincolato correttamente.", 5000, Notification.Position.TOP_END);
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } else {
+                Notification notification = Notification.show("Errore nello svincolo del giocatore.", 5000, Notification.Position.TOP_END);
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
         });
         return deleteButton;
     }
+
 }
 

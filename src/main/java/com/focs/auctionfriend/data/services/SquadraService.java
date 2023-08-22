@@ -3,13 +3,14 @@ package com.focs.auctionfriend.data.services;
 import com.focs.auctionfriend.data.entities.Giocatore;
 import com.focs.auctionfriend.data.entities.Squadra;
 import com.focs.auctionfriend.data.repositories.SquadraRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,9 @@ import java.util.Optional;
 public class SquadraService {
 
     private final SquadraRepository squadraRepository;
+
+    @PersistenceContext
+    private EntityManager em;
 
     @Autowired
     public SquadraService(SquadraRepository squadraRepository) {
@@ -32,7 +36,7 @@ public class SquadraService {
     }
 
     public Squadra saveSquadra(Squadra squadra) {
-        return squadraRepository.save(squadra);
+        return squadraRepository.saveAndFlush(squadra);
     }
 
     public void deleteSquadra(Long id) {
@@ -55,5 +59,52 @@ public class SquadraService {
         String res = p + "" + d + "" + c + "" + a + "";
         return res;
     }
+
+    public boolean hoSlotPorta(Squadra s) {
+        String conteggio = getNumeroGiocatori(s);
+        return Integer.parseInt(String.valueOf(conteggio.charAt(0))) < 3;
+    }
+
+    public boolean hoSlotDifesa(Squadra s) {
+        String conteggio = getNumeroGiocatori(s);
+        return Integer.parseInt(String.valueOf(conteggio.charAt(1))) < 8;
+    }
+
+    public boolean hoSlotCentrocampo(Squadra s) {
+        String conteggio = getNumeroGiocatori(s);
+        return Integer.parseInt(String.valueOf(conteggio.charAt(2))) < 8;
+    }
+
+    public boolean hoSlotAttacco(Squadra s) {
+        String conteggio = getNumeroGiocatori(s);
+        return Integer.parseInt(String.valueOf(conteggio.charAt(3))) < 6;
+    }
+
+    /**
+     * il metodo ripristina i crediti della squadra che sta svincolando un giocatore
+     *
+     * @param squadra
+     * @param giocatoreDaSvincolare
+     * @return true se esiste un giocatore da svincolare in quella squadra
+     */
+    @Transactional
+    public boolean ridaiSoldiESvincola(Squadra squadra, Giocatore giocatoreDaSvincolare) {
+        Squadra managedSquadra = em.find(Squadra.class, squadra.getId());
+        Giocatore managedGiocatore = em.find(Giocatore.class, giocatoreDaSvincolare.getId());
+        if (managedSquadra != null && managedSquadra.getListaGiocatoriAcquistati().contains(managedGiocatore)) {
+            // Rimuovi il giocatore dalla lista
+            managedSquadra.getListaGiocatoriAcquistati().remove(managedGiocatore);
+            // Aggiorna i crediti della squadra
+            managedSquadra.setCrediti(managedSquadra.getCrediti() + managedGiocatore.getPrezzoAcquisto());
+            // Rimuovi il riferimento del giocatore alla squadra
+            managedGiocatore.setPrezzoAcquisto(0);
+            managedGiocatore.setSquadraProprietaria(null);
+            // Non c'è bisogno di em.merge(), poiché le entità sono già gestite dall'EntityManager
+            return true;
+        }
+        return false;
+    }
+
+
 }
 

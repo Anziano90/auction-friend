@@ -3,16 +3,13 @@ package com.focs.auctionfriend.data.services;
 import com.focs.auctionfriend.data.entities.Giocatore;
 import com.focs.auctionfriend.data.repositories.GiocatoreRepository;
 import com.focs.auctionfriend.data.util.Ruolo;
-import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -38,7 +35,7 @@ public class GiocatoreService {
     }
 
     public Giocatore saveGiocatore(Giocatore giocatore) {
-        return giocatoreRepository.save(giocatore);
+        return giocatoreRepository.saveAndFlush(giocatore);
     }
 
     public void deleteGiocatore(Long id) {
@@ -137,7 +134,6 @@ public class GiocatoreService {
         giocatore.setLastUpdated(LocalDateTime.now());
         return giocatore;
     }
-
 
 }
 
