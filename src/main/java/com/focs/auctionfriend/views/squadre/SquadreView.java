@@ -52,6 +52,7 @@ import org.springframework.data.jpa.domain.Specification;
 @Uses(Icon.class)
 public class SquadreView extends Div {
 
+    private Div statisticheDiv = new Div();
     private Grid<Squadra> grid;
 
     private final SquadraService squadraService;
@@ -74,6 +75,36 @@ public class SquadreView extends Div {
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.addClassName("fixed-button");
         add(addButton);
+    }
+
+    private void updateStatisticheText(int portieri, int difensori, int centrocampisti, int attaccanti) {
+        FlexLayout statisticheLayout = new FlexLayout();
+        statisticheLayout.addClassName("statistiche-layout");
+
+        Span portiereIcon = new Span(String.valueOf(portieri));
+        portiereIcon.addClassName("ruolo-icon");
+        portiereIcon.addClassName("ruolo-icon-yellow");
+        portiereIcon.addClassName("icon-margin");
+
+        Span difensoreIcon = new Span(String.valueOf(difensori));
+        difensoreIcon.addClassName("ruolo-icon");
+        difensoreIcon.addClassName("ruolo-icon-green");
+        difensoreIcon.addClassName("icon-margin");
+
+        Span centrocampistaIcon = new Span(String.valueOf(centrocampisti));
+        centrocampistaIcon.addClassName("ruolo-icon");
+        centrocampistaIcon.addClassName("ruolo-icon-blue");
+        centrocampistaIcon.addClassName("icon-margin");
+
+        Span attaccanteIcon = new Span(String.valueOf(attaccanti));
+        attaccanteIcon.addClassName("ruolo-icon");
+        attaccanteIcon.addClassName("ruolo-icon-red");
+        attaccanteIcon.addClassName("icon-margin");
+
+        statisticheLayout.add(portiereIcon, difensoreIcon, centrocampistaIcon, attaccanteIcon);
+
+        statisticheDiv.removeAll();
+        statisticheDiv.add(statisticheLayout);
     }
 
     private void openAddSquadraDialog() {
@@ -132,6 +163,15 @@ public class SquadreView extends Div {
         grid.addColumn(Squadra::getCrediti).setHeader("Crediti");
         ValueProvider<Squadra, String> numeroGiocatoriProvider = squadra -> squadraService.getNumeroGiocatori(squadra);
         grid.addColumn(numeroGiocatoriProvider).setHeader("Rosa");
+
+        grid.addComponentColumn(squadra -> {
+            statisticheDiv.addClassName("statistiche-counter");
+            updateStatisticheText(squadraService.getPortieri(squadra),
+                    squadraService.getDifensori(squadra),
+                    squadraService.getCentrocampisti(squadra),
+                    squadraService.getAttaccanti(squadra));
+            return statisticheDiv;
+        }).setHeader("Statistiche");
 
         //modifica
         grid.addComponentColumn(squadra -> {
