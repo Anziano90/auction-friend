@@ -80,6 +80,17 @@ public class SquadraService {
         return Integer.parseInt(String.valueOf(conteggio.charAt(3))) < 6;
     }
 
+    @Transactional
+    public void rimuoviSquadraESvincolaCalciatori(Squadra squadra) {
+        Squadra managedSquadra = em.find(Squadra.class, squadra.getId());
+        for (Giocatore daSvincolare:
+                managedSquadra.getListaGiocatoriAcquistati()) {
+            daSvincolare.setSquadraProprietaria(null);
+            daSvincolare.setPrezzoAcquisto(0);
+        }
+        this.deleteSquadra(managedSquadra.getId());
+    }
+
     /**
      * il metodo ripristina i crediti della squadra che sta svincolando un giocatore
      * e rimuove il giocatore selezionato

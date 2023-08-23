@@ -162,7 +162,7 @@ public class SquadreView extends Div {
                 Button cancelButton = new Button("Annulla", event -> confirmDialog.close());
                 Button deleteConfirmButton = new Button("Elimina", event -> {
                     // Esegui l'eliminazione della squadra e aggiorna la griglia
-                    squadraService.deleteSquadra(squadra.getId());
+                    squadraService.rimuoviSquadraESvincolaCalciatori(squadra);
                     squadre.remove(squadra);
                     grid.setItems(squadre);
                     confirmDialog.close();

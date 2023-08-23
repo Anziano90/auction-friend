@@ -29,7 +29,10 @@ public class Squadra {
     @Column(name = "crediti")
     private int crediti;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "squadraProprietaria", cascade = {CascadeType.ALL})
+    @OneToMany(fetch = FetchType.EAGER,
+            mappedBy = "squadraProprietaria",
+            cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH},
+            orphanRemoval = false)
     @JsonManagedReference
     private List<Giocatore> listaGiocatoriAcquistati = new ArrayList<>();
 
