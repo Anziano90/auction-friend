@@ -46,8 +46,8 @@ html {
 }
 
 
-.squadre-view {
-    margin: 0 1em 0 1em !important;
+.sleek-view-grid {
+    margin: 1em 1em 1em 1em !important;
     overflow-x: auto !important;
     width: auto !important;
 }

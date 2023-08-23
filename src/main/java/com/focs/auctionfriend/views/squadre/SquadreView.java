@@ -59,7 +59,7 @@ public class SquadreView extends Div {
     public SquadreView(SquadraService squadraService) {
         this.squadraService = squadraService;
         setSizeFull();
-        addClassNames("squadre-view");
+        addClassNames("sleek-view-grid");
 
         this.grid = createGrid();
 
@@ -144,7 +144,6 @@ public class SquadreView extends Div {
 
 
         //elimina
-        // Elimina
         grid.addComponentColumn(squadra -> {
             Button deleteButton = new Button("Elimina");
             deleteButton.addClickListener(e -> {

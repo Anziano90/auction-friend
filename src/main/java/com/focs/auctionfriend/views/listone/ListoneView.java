@@ -1,11 +1,19 @@
 package com.focs.auctionfriend.views.listone;
 
 import com.focs.auctionfriend.data.entities.Giocatore;
+import com.focs.auctionfriend.data.entities.Squadra;
 import com.focs.auctionfriend.data.services.GiocatoreService;
 import com.focs.auctionfriend.views.MainLayout;
+import com.focs.auctionfriend.views.squadre.EditSquadraView;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -15,10 +23,12 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import java.io.InputStream;
+import java.util.List;
 
 @PageTitle("Listone")
 @Route(value = "giocatori", layout = MainLayout.class)
@@ -36,6 +46,8 @@ public class ListoneView extends Div {
 
     public ListoneView(GiocatoreService giocatoreService) {
         this.giocatoreService = giocatoreService;
+        setSizeFull();
+        addClassNames("sleek-view-grid");
 
         nomeFilter.setPlaceholder("Nome");
 
@@ -46,6 +58,7 @@ public class ListoneView extends Div {
         );
         checkboxLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         checkboxLayout.setSpacing(true);
+        checkboxLayout.setPadding(true);
 
         portiereFilter.setTooltipText("Portiere");
         difensoreFilter.setTooltipText("Difensore");
@@ -53,7 +66,9 @@ public class ListoneView extends Div {
         attaccanteFilter.setTooltipText("Attaccante");
 
         // Configura la griglia
-        grid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto");
+        //grid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto");
+
+        grid = createGrid();
 
         svincolatiFilter.setValue(true);
         portiereFilter.setValue(true);
@@ -107,9 +122,31 @@ public class ListoneView extends Div {
 
         // Aggiungi tutto al layout principale
         VerticalLayout layout = new VerticalLayout(filterLayout, grid);
-        layout.setSizeFull(); // Imposta l'altezza del layout principale
-        layout.expand(grid);  // Fai espandere la griglia per riempire lo spazio rimanente
+        layout.setSizeFull();
+        layout.setPadding(false);
+        layout.setSpacing(false);
         add(layout);
+    }
+
+    private Grid<Giocatore> createGrid() {
+        Grid<Giocatore> grid = new Grid<>(Giocatore.class, false);
+        //popola la grid
+        List<Giocatore> giocatori = fetchPlayers();
+
+        grid.addColumn(Giocatore::getNome).setHeader("Nome");
+        grid.addColumn(Giocatore::getRuolo).setHeader("Ruolo");
+        grid.addColumn(Giocatore::getQuotaIniziale).setHeader("Quota iniziale");
+        grid.addColumn(Giocatore::getPrezzoAcquisto).setHeader("Prezzo Acquisto");
+        grid.addColumn(Giocatore::getClub).setHeader("Club");
+        grid.addColumn(Giocatore::getSquadraProprietaria).setHeader("Squadra Proprietaria");
+
+        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
+        grid.setItems(giocatori);
+
+        // Imposta l'altezza massima della griglia per farla scrollable
+        grid.setMaxHeight("calc(100vh - 150px)");
+
+        return grid;
     }
 
     private void updateFilters() {
@@ -121,5 +158,16 @@ public class ListoneView extends Div {
                 attaccanteFilter.getValue(),
                 svincolatiFilter.getValue()));
         grid.setDataProvider(dataProvider);
+    }
+
+    private List<Giocatore> fetchPlayers() {
+        ListDataProvider<Giocatore> dataProvider = DataProvider.ofCollection(giocatoreService.getGiocatoriFiltered(
+                nomeFilter.getValue(),
+                portiereFilter.getValue(),
+                difensoreFilter.getValue(),
+                centrocampistaFilter.getValue(),
+                attaccanteFilter.getValue(),
+                svincolatiFilter.getValue()));
+        return (List<Giocatore>) dataProvider.getItems();
     }
 }
