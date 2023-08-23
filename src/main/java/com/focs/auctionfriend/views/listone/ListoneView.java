@@ -7,6 +7,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -38,10 +39,13 @@ public class ListoneView extends Div {
 
         nomeFilter.setPlaceholder("Nome");
 
-        portiereFilter.addClassName("portiere-checkbox");
-        difensoreFilter.addClassName("difensore-checkbox");
-        centrocampistaFilter.addClassName("centrocampista-checkbox");
-        attaccanteFilter.addClassName("attaccante-checkbox");
+        // Allinea i checkbox utilizzando un layout flessibile
+        HorizontalLayout checkboxLayout = new HorizontalLayout(
+                portiereFilter, difensoreFilter,
+                centrocampistaFilter, attaccanteFilter
+        );
+        checkboxLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        checkboxLayout.setSpacing(true);
 
         portiereFilter.setTooltipText("Portiere");
         difensoreFilter.setTooltipText("Difensore");
@@ -90,17 +94,21 @@ public class ListoneView extends Div {
             }
         });
 
-        // Aggiungi tutto al layout dei filtri
-        HorizontalLayout filterLayout = new HorizontalLayout(nomeFilter,
-                portiereFilter, difensoreFilter,
-                centrocampistaFilter, attaccanteFilter,
-                svincolatiFilter, upload);
+        // Crea il layout dei filtri
+        HorizontalLayout filterLayout = new HorizontalLayout(
+                nomeFilter, checkboxLayout,
+                svincolatiFilter, upload
+        );
+        filterLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        filterLayout.setSpacing(true);
 
         // Popola la griglia con i dati iniziali
         updateFilters();
 
         // Aggiungi tutto al layout principale
         VerticalLayout layout = new VerticalLayout(filterLayout, grid);
+        layout.setSizeFull(); // Imposta l'altezza del layout principale
+        layout.expand(grid);  // Fai espandere la griglia per riempire lo spazio rimanente
         add(layout);
     }
 
