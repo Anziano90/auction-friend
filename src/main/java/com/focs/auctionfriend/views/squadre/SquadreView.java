@@ -135,7 +135,7 @@ public class SquadreView extends Div {
 
         //modifica
         grid.addComponentColumn(squadra -> {
-            Button editButton = new Button("Modifica");
+            Button editButton = new Button("Dettaglio Squadra");
             editButton.addClickListener(e -> {
                 // Reindirizza all'URL della vista di modifica con il parametro squadraId come stringa
                 UI.getCurrent().navigate(EditSquadraView.class, squadra.getId()+"");
@@ -167,6 +167,7 @@ public class SquadreView extends Div {
                     grid.setItems(squadre);
                     confirmDialog.close();
                 });
+                deleteConfirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
                 confirmContent.add(new HorizontalLayout(cancelButton, deleteConfirmButton));
                 confirmDialog.add(confirmContent);

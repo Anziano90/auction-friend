@@ -12,6 +12,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -43,9 +44,11 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         this.squadraService = squadraService;
         this.giocatoreService = giocatoreService;
 
-        giocatoriGrid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto");
+        giocatoriGrid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto", "club");
 
         giocatoriGrid.setAllRowsVisible(true);
+
+        giocatoriGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
         Button acquistaGiocatoreButton = new Button("Acquista giocatore", event -> openAcquistaGiocatoreDialog());
         acquistaGiocatoreButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -95,7 +98,7 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
 
         // Griglia dei giocatori da filtrare (simile a quella nella vista ListoneView)
         Grid<Giocatore> giocatoriDialogGrid = new Grid<>(Giocatore.class, false);
-        giocatoriDialogGrid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto");
+        giocatoriDialogGrid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto", "club");
 
         // Pulsante di ricerca
         Button cercaButton = new Button("Cerca", event -> {
@@ -187,10 +190,9 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                     Optional<Giocatore> giocatoreDaAggiornare = giocatoreService.getGiocatoreById(giocatoreSelezionato.getId());
                     if (giocatoreDaAggiornare.isPresent()) {
                         squadraService.acquistaGiocatore(squadra, giocatoreDaAggiornare.get(), Integer.parseInt(purchasePrice));
+                        giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati()); // Aggiorna la griglia
                         dialog.close();
                         Notification.show("Acquisto confermato!").setPosition(Notification.Position.TOP_END);
-                        // Aggiorna la griglia dei giocatori nella schermata principale
-                        giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati());
                     } else {
                         Notification.show("Qualcosa è andato storto durante l'acquisto.").setPosition(Notification.Position.TOP_END);
                     }
@@ -226,7 +228,6 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
             if (optionalSquadra.isPresent()) {
                 this.squadra = optionalSquadra.get();
                 giocatoriGrid.setItems(this.squadra.getListaGiocatoriAcquistati());
-
                 // Aggiungi pulsanti di modifica e cancellazione per ciascun giocatore
                 giocatoriGrid.addComponentColumn(this::createModificaPrezzoAcquistoButton).setHeader("");
                 giocatoriGrid.addComponentColumn(this::createSvincolaButton).setHeader("");
@@ -237,10 +238,44 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
     private Button createModificaPrezzoAcquistoButton(Giocatore giocatore) {
         Button editButton = new Button(new Icon("lumo", "edit"));
         editButton.addClickListener(e -> {
-            // Implementa la logica di modifica del giocatore
+            // Crea un campo di testo per la modifica del prezzo
+            TextField prezzoField = new TextField();
+            prezzoField.setValue(String.valueOf(giocatore.getPrezzoAcquisto()));
+
+            // Crea un pulsante di conferma
+            Button confirmButton = new Button(new Icon("lumo", "checkmark"));
+            confirmButton.addClickListener(confirmEvent -> {
+                try {
+                    int nuovoPrezzo = Integer.parseInt(prezzoField.getValue());
+                    giocatore.setPrezzoAcquisto(nuovoPrezzo);
+                    giocatoreService.updateGiocatore(giocatore); // Supponendo che ci sia un metodo per l'aggiornamento
+                    giocatoriGrid.getDataProvider().refreshItem(giocatore);
+                    giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati()); // Aggiorna la griglia
+                    Notification.show("Prezzo di acquisto aggiornato con successo.", 3000, Notification.Position.BOTTOM_START);
+                } catch (NumberFormatException ex) {
+                    Notification.show("Inserisci un prezzo valido.", 3000, Notification.Position.BOTTOM_START);
+                }
+            });
+
+            // Crea un pulsante di annullamento
+            Button cancelButton = new Button(new Icon("lumo", "cross"));
+            cancelButton.addClickListener(cancelEvent -> {
+                giocatoriGrid.getDataProvider().refreshItem(giocatore); // Ripristina il valore originale
+            });
+
+            // Crea un layout per i pulsanti di conferma e annullamento
+            HorizontalLayout buttonLayout = new HorizontalLayout(confirmButton, cancelButton);
+
+            // Aggiungi i componenti al layout
+            VerticalLayout editLayout = new VerticalLayout(prezzoField, buttonLayout);
+
+            // Aggiorna il componente nella cella
+            giocatoriGrid.getEditor().editItem(giocatore);
+            giocatoriGrid.getColumnByKey("prezzoAcquisto").setEditorComponent(editLayout);
         });
         return editButton;
     }
+
 
     private Button createSvincolaButton(Giocatore giocatore) {
         Button deleteButton = new Button(new Icon("lumo", "cross"));

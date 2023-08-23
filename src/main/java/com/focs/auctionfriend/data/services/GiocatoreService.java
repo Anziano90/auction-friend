@@ -135,5 +135,17 @@ public class GiocatoreService {
         return giocatore;
     }
 
+    public void updateGiocatore(Giocatore giocatore) {
+        Optional<Giocatore> existingGiocatore = giocatoreRepository.findById(giocatore.getId());
+
+        if (existingGiocatore.isPresent()) {
+            Giocatore updatedGiocatore = existingGiocatore.get();
+            updatedGiocatore.setPrezzoAcquisto(giocatore.getPrezzoAcquisto());
+            giocatoreRepository.save(updatedGiocatore);
+        } else {
+            throw new IllegalArgumentException("Giocatore non trovato con ID: " + giocatore.getId());
+        }
+    }
+
 }
 
