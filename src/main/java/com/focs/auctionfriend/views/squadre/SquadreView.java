@@ -91,6 +91,7 @@ public class SquadreView extends Div {
         content.add(squadraNameField);
 
         // Pulsante di conferma
+        //TODO: aggiustami quando rimpicciolisco la finestra in verticale
         Button confirmButton = new Button("Conferma", event -> {
             // Implementa qui la logica per creare la nuova squadra
             String nomeSquadra = squadraNameField.getValue();

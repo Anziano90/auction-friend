@@ -102,6 +102,21 @@ public class SquadraService {
         return false;
     }
 
+    @Transactional
+    public boolean acquistaGiocatore(Squadra squadraAcquirente, Giocatore giocatoreAcquistato, int prezzoAcquisto){
+        Squadra managedSquadra = em.find(Squadra.class, squadraAcquirente.getId());
+        Giocatore managedGiocatore = em.find(Giocatore.class, giocatoreAcquistato.getId());
+
+        if (managedSquadra != null && managedGiocatore != null) {
+            managedSquadra.getListaGiocatoriAcquistati().add(managedGiocatore);
+            managedSquadra.setCrediti(managedSquadra.getCrediti() - managedGiocatore.getPrezzoAcquisto());
+            managedGiocatore.setPrezzoAcquisto(prezzoAcquisto);
+            managedGiocatore.setSquadraProprietaria(managedSquadra);
+            return true;
+        }
+        return false;
+    }
+
 
 }
 

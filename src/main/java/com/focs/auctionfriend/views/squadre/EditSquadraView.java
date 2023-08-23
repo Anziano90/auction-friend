@@ -186,14 +186,7 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                     // Aggiorna il giocatore
                     Optional<Giocatore> giocatoreDaAggiornare = giocatoreService.getGiocatoreById(giocatoreSelezionato.getId());
                     if (giocatoreDaAggiornare.isPresent()) {
-                        giocatoreDaAggiornare.get().setSquadraProprietaria(squadra);
-                        giocatoreDaAggiornare.get().setPrezzoAcquisto(Integer.parseInt(purchasePrice));
-                        giocatoreService.saveGiocatore(giocatoreDaAggiornare.get());
-                        // Aggiungi il giocatore alla lista dei giocatori acquistati della squadra
-                        squadra.getListaGiocatoriAcquistati().add(giocatoreDaAggiornare.get());
-                        squadra.setCrediti(squadra.getCrediti() - Integer.parseInt(purchasePrice));
-                        squadraService.saveSquadra(squadra);
-                        // Chiudi il dialog dopo l'acquisto
+                        squadraService.acquistaGiocatore(squadra, giocatoreDaAggiornare.get(), Integer.parseInt(purchasePrice));
                         dialog.close();
                         Notification.show("Acquisto confermato!").setPosition(Notification.Position.TOP_END);
                         // Aggiorna la griglia dei giocatori nella schermata principale
