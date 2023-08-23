@@ -3,9 +3,8 @@ package com.focs.auctionfriend.data.services;
 import com.focs.auctionfriend.data.entities.Giocatore;
 import com.focs.auctionfriend.data.entities.Squadra;
 import com.focs.auctionfriend.data.repositories.SquadraRepository;
+import com.focs.auctionfriend.data.util.Ruolo;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,5 +128,28 @@ public class SquadraService {
     }
 
 
+    public int getPortieri(Squadra squadra) {
+        return (int) squadra.getListaGiocatoriAcquistati().stream()
+                .filter(giocatore -> Ruolo.P.equals(giocatore.getRuolo()))
+                .count();
+    }
+
+    public int getDifensori(Squadra squadra) {
+        return (int) squadra.getListaGiocatoriAcquistati().stream()
+                .filter(giocatore -> Ruolo.D.equals(giocatore.getRuolo()))
+                .count();
+    }
+
+    public int getCentrocampisti(Squadra squadra) {
+        return (int) squadra.getListaGiocatoriAcquistati().stream()
+                .filter(giocatore -> Ruolo.C.equals(giocatore.getRuolo()))
+                .count();
+    }
+
+    public int getAttaccanti(Squadra squadra) {
+        return (int) squadra.getListaGiocatoriAcquistati().stream()
+                .filter(giocatore -> Ruolo.A.equals(giocatore.getRuolo()))
+                .count();
+    }
 }
 

@@ -53,7 +53,79 @@ html {
     width: auto !important;
 }
 
+.crediti-counter {
+    font-size: 18px;
+    margin: 1em;
+}
 
+.statistiche-counter{
+    font-size: 18px;
+    margin: 1em;
+}
+
+.ruolo-icon{
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+    color: whitesmoke;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    aspect-ratio: 1;
+    grid-area: r;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.ruolo-icon-red{
+    background-color: #F21C3C !important;
+}
+
+.ruolo-icon-yellow{
+    background-color: #F8AB12 !important;;
+}
+
+.ruolo-icon-green{
+    background-color: #65C723 !important;
+}
+
+.ruolo-icon-blue{
+    background-color: #136AF6 !important;
+}
+
+.green-text{
+    color: #65C723;
+}
+
+.yellow-text{
+    color: #F8AB12;
+}
+
+.red-text{
+    color: #F21C3C;
+}
+
+.bold-text {
+    font-weight: bold;
+}
+
+
+.icon-margin{
+    margin-left: 0.1em;
+    margin-right: 0.1em;
+}
+
+.header-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+.statistiche-layout {
+    display: flex;
+}
 
 
 

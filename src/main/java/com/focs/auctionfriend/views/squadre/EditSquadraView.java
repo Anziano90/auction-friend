@@ -7,12 +7,16 @@ import com.focs.auctionfriend.data.services.SquadraService;
 import com.focs.auctionfriend.data.util.Ruolo;
 import com.focs.auctionfriend.views.MainLayout;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.charts.model.Label;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -38,6 +42,9 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
     private final GiocatoreService giocatoreService;
     private Squadra squadra;
 
+    Div statisticheDiv = new Div();
+    Div creditiDiv = new Div();
+
     private final int MAX_GIOCATORI_ROSA = 25;
 
     private Grid<Giocatore> giocatoriGrid = new Grid<>(Giocatore.class);
@@ -50,15 +57,81 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         giocatoriGrid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto", "club");
 
         giocatoriGrid.setAllRowsVisible(false);
-        giocatoriGrid.setHeight("75vh");
+        giocatoriGrid.setHeight("65vh");
         giocatoriGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
         Button acquistaGiocatoreButton = new Button("Acquista giocatore", event -> openAcquistaGiocatoreDialog());
         acquistaGiocatoreButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         acquistaGiocatoreButton.addClassName("fixed-button");
 
-        add(acquistaGiocatoreButton);
-        add(giocatoriGrid);
+        //Contatore dei crediti sopra la grid
+
+        updateCreditiText(0, 500);
+        creditiDiv.addClassName("crediti-counter");
+
+        updateStatisticheText(0, 0, 0, 0);
+        statisticheDiv.addClassName("statistiche-counter");
+
+        FlexLayout headerLayout = new FlexLayout();
+        headerLayout.setJustifyContentMode(JustifyContentMode.START);
+        headerLayout.setClassName("header-layout");
+        headerLayout.setWidthFull();
+        headerLayout.add(creditiDiv, statisticheDiv);
+
+        VerticalLayout contentLayout = new VerticalLayout();
+        contentLayout.add(headerLayout, acquistaGiocatoreButton, giocatoriGrid);
+        add(contentLayout);
+
+    }
+
+    private void updateCreditiText(int creditiAttuali, int creditiMassimi) {
+        double ratio = (double) creditiAttuali / creditiMassimi;
+
+        Span creditiDisponibiliSpan = new Span("Crediti Disponibili: ");
+
+        Span valoriSpan = new Span(creditiAttuali + "/" + creditiMassimi);
+        valoriSpan.addClassName("bold-text");
+
+        if (ratio >= 0.8) {
+            valoriSpan.addClassName("green-text");
+        } else if (ratio >= 0.2 && ratio < 0.8) {
+            valoriSpan.addClassName("yellow-text");
+        } else {
+            valoriSpan.addClassName("red-text");
+        }
+
+        creditiDiv.removeAll();
+        creditiDiv.add(creditiDisponibiliSpan, valoriSpan);
+    }
+
+    private void updateStatisticheText(int portieri, int difensori, int centrocampisti, int attaccanti) {
+        FlexLayout statisticheLayout = new FlexLayout();
+        statisticheLayout.addClassName("statistiche-layout");
+
+        Span portiereIcon = new Span(String.valueOf(portieri));
+        portiereIcon.addClassName("ruolo-icon");
+        portiereIcon.addClassName("ruolo-icon-yellow");
+        portiereIcon.addClassName("icon-margin");
+
+        Span difensoreIcon = new Span(String.valueOf(difensori));
+        difensoreIcon.addClassName("ruolo-icon");
+        difensoreIcon.addClassName("ruolo-icon-green");
+        difensoreIcon.addClassName("icon-margin");
+
+        Span centrocampistaIcon = new Span(String.valueOf(centrocampisti));
+        centrocampistaIcon.addClassName("ruolo-icon");
+        centrocampistaIcon.addClassName("ruolo-icon-blue");
+        centrocampistaIcon.addClassName("icon-margin");
+
+        Span attaccanteIcon = new Span(String.valueOf(attaccanti));
+        attaccanteIcon.addClassName("ruolo-icon");
+        attaccanteIcon.addClassName("ruolo-icon-red");
+        attaccanteIcon.addClassName("icon-margin");
+
+        statisticheLayout.add(portiereIcon, difensoreIcon, centrocampistaIcon, attaccanteIcon);
+
+        statisticheDiv.removeAll();
+        statisticheDiv.add(statisticheLayout);
     }
 
     private void openAcquistaGiocatoreDialog() {
@@ -164,18 +237,18 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
 
         Button confirmPurchaseButton = new Button("Conferma acquisto", event -> {
             String purchasePrice = purchasePriceField.getValue();
-            if(purchasePrice != null && !purchasePrice.isEmpty()){
+            if (purchasePrice != null && !purchasePrice.isEmpty()) {
 
                 //Controllo se il giocatore è acquistabile
 
                 //Controllo se ho abbastanza crediti
 
-                if (squadra.getCrediti() < Integer.parseInt(purchasePrice)){
+                if (squadra.getCrediti() < Integer.parseInt(purchasePrice)) {
                     Notification.show("Crediti insufficienti").setPosition(Notification.Position.TOP_END);
                 }
 
                 //Controllo se ho abbastanza crediti per i futuri acquisti
-                else if (!checkFuturiAcquisti(MAX_GIOCATORI_ROSA - squadra.getListaGiocatoriAcquistati().size(), squadra.getCrediti(), Integer.parseInt(purchasePrice))){
+                else if (!checkFuturiAcquisti(MAX_GIOCATORI_ROSA - squadra.getListaGiocatoriAcquistati().size(), squadra.getCrediti(), Integer.parseInt(purchasePrice))) {
                     Notification notification = Notification.show("Crediti insufficienti per completare altri acquisti", 5000, Notification.Position.TOP_END);
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
@@ -185,36 +258,36 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                 else if (giocatoreSelezionato.getRuolo().equals(Ruolo.P) && !squadraService.hoSlotPorta(squadra)) {
                     Notification notification = Notification.show("Hai già 3 portieri", 5000, Notification.Position.TOP_END);
                     notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                }
-                else if (giocatoreSelezionato.getRuolo().equals(Ruolo.D) && !squadraService.hoSlotDifesa(squadra)) {
+                } else if (giocatoreSelezionato.getRuolo().equals(Ruolo.D) && !squadraService.hoSlotDifesa(squadra)) {
                     Notification notification = Notification.show("Hai già 8 difensori", 5000, Notification.Position.TOP_END);
                     notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                }
-                else if (giocatoreSelezionato.getRuolo().equals(Ruolo.C) && !squadraService.hoSlotCentrocampo(squadra)) {
+                } else if (giocatoreSelezionato.getRuolo().equals(Ruolo.C) && !squadraService.hoSlotCentrocampo(squadra)) {
                     Notification notification = Notification.show("Hai già 8 centrocampisti", 5000, Notification.Position.TOP_END);
                     notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                }
-                else if (giocatoreSelezionato.getRuolo().equals(Ruolo.A) && !squadraService.hoSlotAttacco(squadra)) {
+                } else if (giocatoreSelezionato.getRuolo().equals(Ruolo.A) && !squadraService.hoSlotAttacco(squadra)) {
                     Notification notification = Notification.show("Hai già 6 attaccanti", 5000, Notification.Position.TOP_END);
                     notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                }
-                else {
+                } else {
                     // Aggiorna il giocatore
                     Optional<Giocatore> giocatoreDaAggiornare = giocatoreService.getGiocatoreById(giocatoreSelezionato.getId());
                     if (giocatoreDaAggiornare.isPresent()) {
                         squadraService.acquistaGiocatore(squadra, giocatoreDaAggiornare.get(), Integer.parseInt(purchasePrice));
-                        // Aggiorna la lista dei giocatori nella squadra dopo l'acquisto
-                        squadra.getListaGiocatoriAcquistati().add(giocatoreDaAggiornare.get());
+                        Optional<Squadra> squadraAggiornata = squadraService.getSquadraById(squadra.getId());
+                        this.squadra = squadraAggiornata.get();
                         // Aggiorna la griglia dei giocatori
                         giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati());
+                        updateCreditiText(this.squadra.getCrediti(), 500); //FIXME dovrebbe essere parametrico e non hardcoded
+                        updateStatisticheText(this.squadraService.getPortieri(this.squadra),
+                                this.squadraService.getDifensori(this.squadra),
+                                this.squadraService.getCentrocampisti(this.squadra),
+                                this.squadraService.getAttaccanti(this.squadra));
                         dialog.close();
                         Notification.show("Acquisto confermato!").setPosition(Notification.Position.TOP_END);
                     } else {
                         Notification.show("Qualcosa è andato storto durante l'acquisto.").setPosition(Notification.Position.TOP_END);
                     }
                 }
-            }
-            else {
+            } else {
                 Notification.show("Inserisci il prezzo di acquisto.").setPosition(Notification.Position.TOP_END);
             }
         });
@@ -237,6 +310,7 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
 
     /**
      * Controllo che prezzoAcquisto < crediti - slotRimanenti (escluso l'acquisto corrente)
+     *
      * @param slotRimanenti
      * @param creditiRimanenti
      * @param prezzoAcquisto
@@ -262,6 +336,12 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                 // Aggiungi pulsanti di modifica e cancellazione per ciascun giocatore
                 giocatoriGrid.addComponentColumn(this::createModificaPrezzoAcquistoButton).setHeader("");
                 giocatoriGrid.addComponentColumn(this::createSvincolaButton).setHeader("");
+
+                updateCreditiText(this.squadra.getCrediti(), 500); //FIXME dovrebbe essere parametrico e non hardcoded
+                updateStatisticheText(this.squadraService.getPortieri(this.squadra),
+                        this.squadraService.getDifensori(this.squadra),
+                        this.squadraService.getCentrocampisti(this.squadra),
+                        this.squadraService.getAttaccanti(this.squadra));
             }
         }
     }
@@ -281,6 +361,8 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                     giocatore.setPrezzoAcquisto(nuovoPrezzo);
                     giocatoreService.updateGiocatore(giocatore); // Supponendo che ci sia un metodo per l'aggiornamento
                     giocatoriGrid.getDataProvider().refreshItem(giocatore);
+                    Optional<Squadra> squadraAggiornata = squadraService.getSquadraById(squadra.getId());
+                    this.squadra = squadraAggiornata.get();
                     giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati()); // Aggiorna la griglia
                     Notification.show("Prezzo di acquisto aggiornato con successo.", 3000, Notification.Position.BOTTOM_START);
                 } catch (NumberFormatException ex) {
@@ -312,9 +394,16 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         Button deleteButton = new Button(new Icon("lumo", "cross"));
         deleteButton.addClickListener(e -> {
             boolean flag = squadraService.ridaiSoldiESvincola(squadra, giocatore);
+            Optional<Squadra> squadraAggiornata = squadraService.getSquadraById(squadra.getId());
+            this.squadra = squadraAggiornata.get();
             if (flag) {
                 squadra.getListaGiocatoriAcquistati().remove(giocatore); // Rimuovi il giocatore dalla lista
                 giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati()); // Aggiorna la griglia
+                updateCreditiText(this.squadra.getCrediti(), 500); //FIXME dovrebbe essere parametrico e non hardcoded
+                updateStatisticheText(this.squadraService.getPortieri(this.squadra),
+                        this.squadraService.getDifensori(this.squadra),
+                        this.squadraService.getCentrocampisti(this.squadra),
+                        this.squadraService.getAttaccanti(this.squadra));
                 Notification notification = Notification.show("Giocatore svincolato correttamente.", 5000, Notification.Position.TOP_END);
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } else {
