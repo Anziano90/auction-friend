@@ -109,7 +109,7 @@ public class SquadraService {
 
         if (managedSquadra != null && managedGiocatore != null) {
             managedSquadra.getListaGiocatoriAcquistati().add(managedGiocatore);
-            managedSquadra.setCrediti(managedSquadra.getCrediti() - managedGiocatore.getPrezzoAcquisto());
+            managedSquadra.setCrediti(managedSquadra.getCrediti() - prezzoAcquisto);
             managedGiocatore.setPrezzoAcquisto(prezzoAcquisto);
             managedGiocatore.setSquadraProprietaria(managedSquadra);
             return true;

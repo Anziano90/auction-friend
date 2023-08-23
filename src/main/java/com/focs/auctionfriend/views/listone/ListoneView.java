@@ -1,19 +1,12 @@
 package com.focs.auctionfriend.views.listone;
 
 import com.focs.auctionfriend.data.entities.Giocatore;
-import com.focs.auctionfriend.data.entities.Squadra;
 import com.focs.auctionfriend.data.services.GiocatoreService;
 import com.focs.auctionfriend.views.MainLayout;
-import com.focs.auctionfriend.views.squadre.EditSquadraView;
-import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -23,7 +16,6 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
-import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -36,7 +28,7 @@ public class ListoneView extends Div {
 
     private final GiocatoreService giocatoreService;
 
-    private Grid<Giocatore> grid = new Grid<>(Giocatore.class);
+    private Grid<Giocatore> grid;
     private TextField nomeFilter = new TextField();
     private Checkbox portiereFilter = new Checkbox("P");
     private Checkbox difensoreFilter = new Checkbox("D");

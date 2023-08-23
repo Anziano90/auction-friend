@@ -43,11 +43,12 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
     public EditSquadraView(SquadraService squadraService, GiocatoreService giocatoreService) {
         this.squadraService = squadraService;
         this.giocatoreService = giocatoreService;
+        addClassNames("sleek-view-grid");
 
         giocatoriGrid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto", "club");
 
-        giocatoriGrid.setAllRowsVisible(true);
-
+        giocatoriGrid.setAllRowsVisible(false);
+        giocatoriGrid.setMaxHeight("calc(100vh - 150px)");
         giocatoriGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
         Button acquistaGiocatoreButton = new Button("Acquista giocatore", event -> openAcquistaGiocatoreDialog());
@@ -190,7 +191,10 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                     Optional<Giocatore> giocatoreDaAggiornare = giocatoreService.getGiocatoreById(giocatoreSelezionato.getId());
                     if (giocatoreDaAggiornare.isPresent()) {
                         squadraService.acquistaGiocatore(squadra, giocatoreDaAggiornare.get(), Integer.parseInt(purchasePrice));
-                        giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati()); // Aggiorna la griglia
+                        // Aggiorna la lista dei giocatori nella squadra dopo l'acquisto
+                        squadra.getListaGiocatoriAcquistati().add(giocatoreDaAggiornare.get());
+                        // Aggiorna la griglia dei giocatori
+                        giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati());
                         dialog.close();
                         Notification.show("Acquisto confermato!").setPosition(Notification.Position.TOP_END);
                     } else {
