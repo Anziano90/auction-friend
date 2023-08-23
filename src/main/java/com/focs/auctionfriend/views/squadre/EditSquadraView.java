@@ -48,7 +48,7 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         giocatoriGrid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto", "club");
 
         giocatoriGrid.setAllRowsVisible(false);
-        giocatoriGrid.setMaxHeight("calc(100vh - 150px)");
+        giocatoriGrid.setHeight("75vh");
         giocatoriGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
         Button acquistaGiocatoreButton = new Button("Acquista giocatore", event -> openAcquistaGiocatoreDialog());

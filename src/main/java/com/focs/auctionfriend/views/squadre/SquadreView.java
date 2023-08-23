@@ -179,8 +179,7 @@ public class SquadreView extends Div {
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.setItems(squadre);
 
-        // Imposta l'altezza massima della griglia per farla scrollable
-        grid.setMaxHeight("calc(100vh - 150px)"); // 150px è l'altezza del pulsante "Aggiungi squadra +"
+        grid.setHeight("75vh");
 
         return grid;
     }

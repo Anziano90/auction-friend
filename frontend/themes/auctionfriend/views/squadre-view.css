@@ -79,7 +79,7 @@
 
 .fixed-button {
   position: fixed;
-  bottom: 50px; /* Altezza del pulsante dalla parte inferiore della finestra */
+  bottom: 3em; /* Altezza del pulsante dalla parte inferiore della finestra */
   left: 50%;
   transform: translateX(-50%);
 }

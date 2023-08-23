@@ -38,7 +38,6 @@ public class ListoneView extends Div {
 
     public ListoneView(GiocatoreService giocatoreService) {
         this.giocatoreService = giocatoreService;
-        setSizeFull();
         addClassNames("sleek-view-grid");
 
         nomeFilter.setPlaceholder("Nome");
@@ -56,9 +55,6 @@ public class ListoneView extends Div {
         difensoreFilter.setTooltipText("Difensore");
         centrocampistaFilter.setTooltipText("Centrocampista");
         attaccanteFilter.setTooltipText("Attaccante");
-
-        // Configura la griglia
-        //grid.setColumns("nome", "ruolo", "quotaIniziale", "prezzoAcquisto");
 
         grid = createGrid();
 
@@ -114,7 +110,6 @@ public class ListoneView extends Div {
 
         // Aggiungi tutto al layout principale
         VerticalLayout layout = new VerticalLayout(filterLayout, grid);
-        layout.setSizeFull();
         layout.setPadding(false);
         layout.setSpacing(false);
         add(layout);
@@ -135,8 +130,7 @@ public class ListoneView extends Div {
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.setItems(giocatori);
 
-        // Imposta l'altezza massima della griglia per farla scrollable
-        grid.setMaxHeight("calc(100vh - 150px)");
+        grid.setHeight("75vh");
 
         return grid;
     }
