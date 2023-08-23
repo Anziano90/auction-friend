@@ -15,8 +15,7 @@ public interface GiocatoreRepository extends JpaRepository<Giocatore, Long> {
 
     @Query("SELECT g FROM Giocatore g " +
             "WHERE (:nome is null or g.nome LIKE %:nome%) " +
-            "AND (g.ruolo IN (:ruoli))" +
-            "AND (:svincolato = true AND g.prezzoAcquisto = 0)")
+            "AND (g.ruolo IN (:ruoli)) AND ((:svincolato = true AND g.squadraProprietaria is null) OR (:svincolato = false AND g.squadraProprietaria is not null))")
     List<Giocatore> findByFilter(String nome, Set<Ruolo> ruoli, boolean svincolato);
 
 }
