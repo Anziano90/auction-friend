@@ -6,6 +6,7 @@ import com.focs.auctionfriend.views.listone.ListoneView;
 import com.focs.auctionfriend.views.squadre.SquadreView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.charts.model.style.Color;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.theme.lumo.LumoUtility.*;
@@ -27,7 +28,7 @@ public class MainLayout extends AppLayout {
             this.view = view;
             RouterLink link = new RouterLink();
             // Use Lumo classnames for various styling
-            link.addClassNames(Display.FLEX, Gap.XSMALL, Height.MEDIUM, AlignItems.CENTER, Padding.Horizontal.SMALL,
+            link.addClassNames(Display.FLEX, Gap.SMALL, Height.MEDIUM, AlignItems.CENTER, Padding.Horizontal.SMALL,
                     TextColor.BODY);
             link.setRoute(view);
 
@@ -50,6 +51,8 @@ public class MainLayout extends AppLayout {
 
     public MainLayout() {
         addToNavbar(createHeaderContent());
+        //<theme-editor-local-classname>
+        addClassName("main-layout-app-layout-1");
     }
 
     private Component createHeaderContent() {
@@ -59,8 +62,8 @@ public class MainLayout extends AppLayout {
         Div layout = new Div();
         layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE);
 
-        H1 appName = new H1("Auction Friend");
-        appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
+        H1 appName = new H1("AUCTION FRIEND");
+        appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.XXLARGE);
         layout.add(appName);
 
         Nav nav = new Nav();
@@ -82,11 +85,11 @@ public class MainLayout extends AppLayout {
 
     private MenuItemInfo[] createMenuItems() {
         return new MenuItemInfo[]{ //
-                new MenuItemInfo("Squadre", LineAwesomeIcon.FILTER_SOLID.create(), SquadreView.class), //
+                new MenuItemInfo("Squadre", LineAwesomeIcon.FUTBOL.create(), SquadreView.class), //
 
                 new MenuItemInfo("Listone", LineAwesomeIcon.LIST_SOLID.create(), ListoneView.class), //
 
-                new MenuItemInfo("About", LineAwesomeIcon.FILE.create(), AboutView.class), //
+                new MenuItemInfo("About", LineAwesomeIcon.INFO_SOLID.create(), AboutView.class), //
 
         };
     }

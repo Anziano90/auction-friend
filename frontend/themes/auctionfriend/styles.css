@@ -1,3 +1,4 @@
+@import "theme-editor.css";
 @import url('./main-layout.css');
 @import url('./views/squadre-view.css');
 @import url('./views/listone-view.css');
@@ -47,12 +48,11 @@ html {
 
 
 .sleek-view-grid {
-    margin: 1em 1em 1em 1em !important;
-    overflow-x: auto !important;
-    overflow-y: auto !important;
+    margin: 1em !important;
+    overflow: hidden !important;
     width: auto !important;
-    /*height: auto !important;*/
 }
+
 
 
 
