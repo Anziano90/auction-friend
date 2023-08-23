@@ -38,6 +38,8 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
     private final GiocatoreService giocatoreService;
     private Squadra squadra;
 
+    private final int MAX_GIOCATORI_ROSA = 25;
+
     private Grid<Giocatore> giocatoriGrid = new Grid<>(Giocatore.class);
 
     public EditSquadraView(SquadraService squadraService, GiocatoreService giocatoreService) {
@@ -128,8 +130,8 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                 dialog.removeAll();
                 dialog.add(confirmPurchaseContent(giocatoreSelezionato, dialog));
             } else {
-                // Mostra un messaggio di errore se nessun giocatore è selezionato
-                Notification.show("Seleziona un giocatore prima di procedere all'acquisto.");
+                Notification notification = Notification.show("Seleziona un giocatore prima di procedere all'acquisto.", 5000, Notification.Position.TOP_END);
+                notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
             }
         });
 
@@ -172,19 +174,29 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                     Notification.show("Crediti insufficienti").setPosition(Notification.Position.TOP_END);
                 }
 
+                //Controllo se ho abbastanza crediti per i futuri acquisti
+                else if (!checkFuturiAcquisti(MAX_GIOCATORI_ROSA - squadra.getListaGiocatoriAcquistati().size(), squadra.getCrediti(), Integer.parseInt(purchasePrice))){
+                    Notification notification = Notification.show("Crediti insufficienti per completare altri acquisti", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+
                 //Controllo se ho abbastanza slot
 
                 else if (giocatoreSelezionato.getRuolo().equals(Ruolo.P) && !squadraService.hoSlotPorta(squadra)) {
-                    Notification.show("Hai già 3 portieri").setPosition(Notification.Position.TOP_END);
+                    Notification notification = Notification.show("Hai già 3 portieri", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
                 }
                 else if (giocatoreSelezionato.getRuolo().equals(Ruolo.D) && !squadraService.hoSlotDifesa(squadra)) {
-                    Notification.show("Hai già 8 difensori").setPosition(Notification.Position.TOP_END);
+                    Notification notification = Notification.show("Hai già 8 difensori", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
                 }
                 else if (giocatoreSelezionato.getRuolo().equals(Ruolo.C) && !squadraService.hoSlotCentrocampo(squadra)) {
-                    Notification.show("Hai già 8 centrocampisti").setPosition(Notification.Position.TOP_END);
+                    Notification notification = Notification.show("Hai già 8 centrocampisti", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
                 }
                 else if (giocatoreSelezionato.getRuolo().equals(Ruolo.A) && !squadraService.hoSlotAttacco(squadra)) {
-                    Notification.show("Hai già 6 attaccanti").setPosition(Notification.Position.TOP_END);
+                    Notification notification = Notification.show("Hai già 6 attaccanti", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
                 }
                 else {
                     // Aggiorna il giocatore
@@ -221,6 +233,21 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         dialog.setHeaderTitle("Conferma acquisto");
 
         return confirmPurchaseDialog;
+    }
+
+    /**
+     * Controllo che prezzoAcquisto < crediti - slotRimanenti (escluso l'acquisto corrente)
+     * @param slotRimanenti
+     * @param creditiRimanenti
+     * @param prezzoAcquisto
+     * @return
+     */
+    private boolean checkFuturiAcquisti(int slotRimanenti, int creditiRimanenti, int prezzoAcquisto) {
+        if (prezzoAcquisto <= creditiRimanenti) {
+            int creditiDopoAcquisto = creditiRimanenti - prezzoAcquisto;
+            return creditiDopoAcquisto >= slotRimanenti - 1;
+        }
+        return false;
     }
 
     @Override
