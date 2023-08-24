@@ -85,36 +85,28 @@ public class GiocatoreService {
                 }
             }
 
+            // Trova i giocatori svincolati da eliminare ed eliminali
+            List<Giocatore> giocatoriToDelete = giocatoreRepository.findAll().stream()
+                    .filter(g -> g.getSquadraProprietaria() == null)
+                    .collect(Collectors.toList());
+            giocatoreRepository.deleteAll(giocatoriToDelete);
+
             // Carica tutti i giocatori dal database
             List<Giocatore> existingGiocatori = giocatoreRepository.findAll();
-
-            // Rimuovi i giocatori con id_squadra non null dall'elenco
-            List<Giocatore> giocatoriToRemove = existingGiocatori.stream()
-                    .filter(giocatore -> giocatore.getSquadraProprietaria() != null)
-                    .collect(Collectors.toList());
-            existingGiocatori.removeAll(giocatoriToRemove);
-
-            // Elabora i dati dal file Excel per ottenere la lista dei nuovi giocatori
             List<Giocatore> newGiocatori = new ArrayList<>();
+
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
                 Giocatore giocatore = extractGiocatoreFromRow(row);
                 if (giocatore != null) {
-                    // Verifica se il giocatore esiste già nel database basato su nome e club
                     boolean isDuplicate = existingGiocatori.stream()
-                            .anyMatch(existing -> existing.getNome().equals(giocatore.getNome())
-                                    && existing.getClub().equals(giocatore.getClub()));
-                    // Aggiungi il giocatore alla lista dei nuovi giocatori solo se non è un duplicato
+                            .anyMatch(existing -> existing.getNome().equalsIgnoreCase(giocatore.getNome()));
                     if (!isDuplicate) {
                         newGiocatori.add(giocatore);
                     }
                 }
             }
 
-            // Elimina tutti i giocatori presenti nel database (tranne quelli con id_squadra non null)
-            giocatoreRepository.deleteAll(existingGiocatori);
-
-            // Salva i nuovi giocatori nel database
             giocatoreRepository.saveAll(newGiocatori);
         }
     }

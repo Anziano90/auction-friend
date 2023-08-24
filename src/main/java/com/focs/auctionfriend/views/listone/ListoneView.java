@@ -8,6 +8,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -89,11 +90,14 @@ public class ListoneView extends Div {
 
                 // Aggiorna la griglia dei giocatori
                 updateFilters();
+                upload.clearFileList();
 
-                Notification.show("Caricamento completato con successo.");
+                Notification notification = Notification.show("Caricamento completato con successo.", 5000, Notification.Position.TOP_END);
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception e) {
                 e.printStackTrace();
-                Notification.show("Si è verificato un errore durante l'importazione dei giocatori.");
+                Notification notification = Notification.show("Si è verificato un errore durante l'importazione dei giocatori.", 5000, Notification.Position.TOP_END);
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         });
 
