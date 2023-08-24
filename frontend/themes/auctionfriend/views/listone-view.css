@@ -69,23 +69,3 @@
   margin-right: var(--lumo-space-l);
 }
 
-/* Aggiungi le regole CSS per personalizzare i colori delle checkbox */
-.portiere-checkbox::before {
-  background-color: #F8AB12;
-  border-color: #F8AB12;
-}
-
-.difensore-checkbox::before {
-  background-color: #65C723;
-  border-color: #65C723;
-}
-
-.centrocampista-checkbox::before {
-  background-color: #136AF6;
-  border-color: #136AF6;
-}
-
-.attaccante-checkbox::before {
-  background-color: #F21C3C;
-  border-color: #F21C3C;
-}

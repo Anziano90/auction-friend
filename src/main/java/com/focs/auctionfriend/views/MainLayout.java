@@ -6,7 +6,6 @@ import com.focs.auctionfriend.views.listone.ListoneView;
 import com.focs.auctionfriend.views.squadre.SquadreView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
-import com.vaadin.flow.component.charts.model.style.Color;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.theme.lumo.LumoUtility.*;
