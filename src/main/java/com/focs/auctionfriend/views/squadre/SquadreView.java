@@ -161,17 +161,17 @@ public class SquadreView extends Div {
 
         grid.addColumn(Squadra::getNome).setHeader("Nome");
         grid.addColumn(Squadra::getCrediti).setHeader("Crediti");
-        ValueProvider<Squadra, String> numeroGiocatoriProvider = squadra -> squadraService.getNumeroGiocatori(squadra);
-        grid.addColumn(numeroGiocatoriProvider).setHeader("Rosa");
+        //ValueProvider<Squadra, String> numeroGiocatoriProvider = squadra -> squadraService.getNumeroGiocatori(squadra);
+        //grid.addColumn(numeroGiocatoriProvider).setHeader("Rosa");
 
         grid.addComponentColumn(squadra -> {
-            statisticheDiv.addClassName("statistiche-counter");
+            statisticheDiv.addClassName("statistiche-counter-no-mg-left");
             updateStatisticheText(squadraService.getPortieri(squadra),
                     squadraService.getDifensori(squadra),
                     squadraService.getCentrocampisti(squadra),
                     squadraService.getAttaccanti(squadra));
             return statisticheDiv;
-        }).setHeader("Statistiche");
+        }).setHeader("Giocatori in Rosa");
 
         //modifica
         grid.addComponentColumn(squadra -> {

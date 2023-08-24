@@ -1,6 +1,7 @@
 package com.focs.auctionfriend.views.listone;
 
 import com.focs.auctionfriend.data.entities.Giocatore;
+import com.focs.auctionfriend.data.entities.Squadra;
 import com.focs.auctionfriend.data.services.GiocatoreService;
 import com.focs.auctionfriend.views.MainLayout;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -129,7 +130,11 @@ public class ListoneView extends Div {
         grid.addColumn(Giocatore::getQuotaIniziale).setHeader("Quota iniziale");
         grid.addColumn(Giocatore::getPrezzoAcquisto).setHeader("Prezzo Acquisto");
         grid.addColumn(Giocatore::getClub).setHeader("Club");
-        grid.addColumn(giocatore -> giocatore.getSquadraProprietaria().getNome()).setHeader("Squadra Proprietaria");
+        grid.addColumn(giocatore -> {
+            Squadra squadraProprietaria = giocatore.getSquadraProprietaria();
+            return squadraProprietaria != null ? squadraProprietaria.getNome() : "";
+        }).setHeader("Squadra Proprietaria");
+
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.setItems(giocatori);
