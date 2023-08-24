@@ -129,7 +129,7 @@ public class ListoneView extends Div {
         grid.addColumn(Giocatore::getQuotaIniziale).setHeader("Quota iniziale");
         grid.addColumn(Giocatore::getPrezzoAcquisto).setHeader("Prezzo Acquisto");
         grid.addColumn(Giocatore::getClub).setHeader("Club");
-        grid.addColumn(Giocatore::getSquadraProprietaria).setHeader("Squadra Proprietaria");
+        grid.addColumn(giocatore -> giocatore.getSquadraProprietaria().getNome()).setHeader("Squadra Proprietaria");
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.setItems(giocatori);
