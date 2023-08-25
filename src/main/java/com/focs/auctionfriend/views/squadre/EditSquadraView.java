@@ -248,7 +248,7 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                 }
 
                 //Controllo se ho abbastanza crediti per i futuri acquisti
-                else if (!checkFuturiAcquisti(MAX_GIOCATORI_ROSA - squadra.getListaGiocatoriAcquistati().size(), squadra.getCrediti(), Integer.parseInt(purchasePrice))) {
+                else if (!checkFuturiAcquisti(MAX_GIOCATORI_ROSA - squadra.getListaGiocatoriAcquistati().size() - 1, squadra.getCrediti(), Integer.parseInt(purchasePrice))) {
                     Notification notification = Notification.show("Crediti insufficienti per completare altri acquisti", 5000, Notification.Position.TOP_END);
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
@@ -282,9 +282,11 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                                 this.squadraService.getCentrocampisti(this.squadra),
                                 this.squadraService.getAttaccanti(this.squadra));
                         dialog.close();
-                        Notification.show("Acquisto confermato!").setPosition(Notification.Position.TOP_END);
+                        Notification notification = Notification.show("Acquisto confermato!", 5000, Notification.Position.TOP_END);
+                        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     } else {
-                        Notification.show("Qualcosa è andato storto durante l'acquisto.").setPosition(Notification.Position.TOP_END);
+                        Notification notification = Notification.show("Qualcosa è andato storto durante l'acquisto.", 5000, Notification.Position.TOP_END);
+                        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 }
             } else {

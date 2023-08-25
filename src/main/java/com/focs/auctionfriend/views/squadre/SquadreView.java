@@ -52,7 +52,7 @@ import org.springframework.data.jpa.domain.Specification;
 @Uses(Icon.class)
 public class SquadreView extends Div {
 
-    private Div statisticheDiv = new Div();
+    private List<Div> listaDivRuoli;
     private Grid<Squadra> grid;
 
     private final SquadraService squadraService;
@@ -77,7 +77,7 @@ public class SquadreView extends Div {
         add(addButton);
     }
 
-    private void updateStatisticheText(int portieri, int difensori, int centrocampisti, int attaccanti) {
+    private Div updateStatisticheText(Div statisticheDiv, int portieri, int difensori, int centrocampisti, int attaccanti) {
         FlexLayout statisticheLayout = new FlexLayout();
         statisticheLayout.addClassName("statistiche-layout");
 
@@ -105,6 +105,8 @@ public class SquadreView extends Div {
 
         statisticheDiv.removeAll();
         statisticheDiv.add(statisticheLayout);
+
+        return statisticheDiv;
     }
 
     private void openAddSquadraDialog() {
@@ -134,6 +136,9 @@ public class SquadreView extends Div {
                 nuovaSquadra.setLastUpdated(LocalDateTime.now());
                 nuovaSquadra.setListaGiocatoriAcquistati(new ArrayList<>());
                 squadraService.saveSquadra(nuovaSquadra);
+                Div statisticheSquadraDiv = new Div();
+                statisticheSquadraDiv = updateStatisticheText(statisticheSquadraDiv,0,0,0,0);
+                listaDivRuoli.add(statisticheSquadraDiv);
                 dialog.close(); // Chiudi il dialog dopo la creazione
                 // Aggiorna la griglia delle squadre
                 this.grid.setItems(squadraService.getAllSquadre());
@@ -158,19 +163,20 @@ public class SquadreView extends Div {
     private Grid<Squadra> createGrid() {
         Grid<Squadra> grid = new Grid<>(Squadra.class, false);
         List<Squadra> squadre = squadraService.getAllSquadre();
+        listaDivRuoli = new ArrayList<>(squadre.size());
 
         grid.addColumn(Squadra::getNome).setHeader("Nome");
         grid.addColumn(Squadra::getCrediti).setHeader("Crediti");
-        //ValueProvider<Squadra, String> numeroGiocatoriProvider = squadra -> squadraService.getNumeroGiocatori(squadra);
-        //grid.addColumn(numeroGiocatoriProvider).setHeader("Rosa");
 
         grid.addComponentColumn(squadra -> {
-            statisticheDiv.addClassName("statistiche-counter-no-mg-left");
-            updateStatisticheText(squadraService.getPortieri(squadra),
+            Div statisticheSquadraDiv = new Div();
+            statisticheSquadraDiv = updateStatisticheText(new Div(), squadraService.getPortieri(squadra),
                     squadraService.getDifensori(squadra),
                     squadraService.getCentrocampisti(squadra),
                     squadraService.getAttaccanti(squadra));
-            return statisticheDiv;
+            statisticheSquadraDiv.addClassName("statistiche-counter-no-mg-left");
+            listaDivRuoli.add(statisticheSquadraDiv);
+            return statisticheSquadraDiv;
         }).setHeader("Giocatori in Rosa");
 
         //modifica
