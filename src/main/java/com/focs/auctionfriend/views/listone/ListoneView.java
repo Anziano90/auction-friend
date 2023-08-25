@@ -3,16 +3,24 @@ package com.focs.auctionfriend.views.listone;
 import com.focs.auctionfriend.data.entities.Giocatore;
 import com.focs.auctionfriend.data.entities.Squadra;
 import com.focs.auctionfriend.data.services.GiocatoreService;
+import com.focs.auctionfriend.data.services.SquadraService;
+import com.focs.auctionfriend.data.util.Ruolo;
 import com.focs.auctionfriend.views.MainLayout;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
@@ -29,6 +37,7 @@ import java.util.List;
 public class ListoneView extends Div {
 
     private final GiocatoreService giocatoreService;
+    private final SquadraService squadraService;
 
     private Grid<Giocatore> grid;
     private TextField nomeFilter = new TextField();
@@ -38,8 +47,9 @@ public class ListoneView extends Div {
     private Checkbox attaccanteFilter = new Checkbox("A");
     private Checkbox svincolatiFilter = new Checkbox("Svincolati");
 
-    public ListoneView(GiocatoreService giocatoreService) {
+    public ListoneView(GiocatoreService giocatoreService, SquadraService squadraService) {
         this.giocatoreService = giocatoreService;
+        this.squadraService = squadraService;
         addClassNames("sleek-view-grid");
 
         nomeFilter.setPlaceholder("Nome");
@@ -122,7 +132,7 @@ public class ListoneView extends Div {
 
     private Grid<Giocatore> createGrid() {
         Grid<Giocatore> grid = new Grid<>(Giocatore.class, false);
-        //popola la grid
+
         List<Giocatore> giocatori = fetchPlayers();
 
         grid.addColumn(Giocatore::getNome).setHeader("Nome");
@@ -130,11 +140,18 @@ public class ListoneView extends Div {
         grid.addColumn(Giocatore::getQuotaIniziale).setHeader("Quota iniziale");
         grid.addColumn(Giocatore::getPrezzoAcquisto).setHeader("Prezzo Acquisto");
         grid.addColumn(Giocatore::getClub).setHeader("Club");
+
         grid.addColumn(giocatore -> {
             Squadra squadraProprietaria = giocatore.getSquadraProprietaria();
             return squadraProprietaria != null ? squadraProprietaria.getNome() : "";
         }).setHeader("Squadra Proprietaria");
 
+        grid.addComponentColumn(giocatore -> {
+            Button euroButton = new Button(new Icon(VaadinIcon.EURO));
+            euroButton.addClickListener(event -> openEuroDialog(giocatore));
+            euroButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            return euroButton;
+        }).setHeader("Acquista");
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.setItems(giocatori);
@@ -142,6 +159,76 @@ public class ListoneView extends Div {
         grid.setHeight("75vh");
 
         return grid;
+    }
+
+    private void openEuroDialog(Giocatore giocatore) {
+        Dialog acquistaDialog = new Dialog();
+        acquistaDialog.setCloseOnOutsideClick(false);
+
+        Select<Squadra> select = new Select<>();
+        select.setItems(squadraService.getAllSquadre());
+        select.setItemLabelGenerator(Squadra::getNome);
+        select.setLabel("Seleziona una squadra");
+        select.setClassName("mg-point5");
+
+        TextField importoAcquisto = new TextField("Importo Acquisto");
+        importoAcquisto.setValue("1");
+        importoAcquisto.setClassName("mg-point5");
+
+        Button confirmButton = new Button("Conferma", e -> {
+            Squadra squadraSelezionata = select.getValue();
+            if (squadraSelezionata != null) {
+
+                //Controllo se il giocatore è acquistabile:
+
+                //1)Controllo se ho abbastanza crediti
+                if (squadraSelezionata.getCrediti() < Integer.parseInt(importoAcquisto.getValue())) {
+                    Notification notification = Notification.show("Crediti insufficienti", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+
+                //2)Controllo se ho abbastanza crediti per i futuri acquisti
+                else if (!squadraService.checkFuturiAcquisti(squadraService.MAX_GIOCATORI_ROSA - squadraSelezionata.getListaGiocatoriAcquistati().size(), squadraSelezionata.getCrediti(), Integer.parseInt(importoAcquisto.getValue()))) {
+                    Notification notification = Notification.show("Crediti insufficienti per completare altri acquisti", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+
+                //3)Controllo se ho abbastanza slot
+                else if (giocatore.getRuolo().equals(Ruolo.P) && !squadraService.hoSlotPorta(squadraSelezionata)) {
+                    Notification notification = Notification.show("Hai già 3 portieri", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                } else if (giocatore.getRuolo().equals(Ruolo.D) && !squadraService.hoSlotDifesa(squadraSelezionata)) {
+                    Notification notification = Notification.show("Hai già 8 difensori", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                } else if (giocatore.getRuolo().equals(Ruolo.C) && !squadraService.hoSlotCentrocampo(squadraSelezionata)) {
+                    Notification notification = Notification.show("Hai già 8 centrocampisti", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                } else if (giocatore.getRuolo().equals(Ruolo.A) && !squadraService.hoSlotAttacco(squadraSelezionata)) {
+                    Notification notification = Notification.show("Hai già 6 attaccanti", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                } else { //posso acquistare
+
+                    boolean flag = squadraService.acquistaGiocatore(squadraSelezionata, giocatore, Integer.parseInt(importoAcquisto.getValue()));
+                    if (flag) {
+                        Notification notification = Notification.show("Acquisto completato con successo.", 5000, Notification.Position.TOP_END);
+                        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    } else {
+                        Notification notification = Notification.show("Errore nel completamento dell'acquisto.", 5000, Notification.Position.TOP_END);
+                        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
+            } else {
+                Notification notification = Notification.show("Errore selezione della squadra", 5000, Notification.Position.TOP_END);
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                acquistaDialog.close();
+            }
+        });
+        confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Button cancelButton = new Button("Annulla", e -> acquistaDialog.close());
+
+        acquistaDialog.add(select, importoAcquisto, new HorizontalLayout(confirmButton, cancelButton));
+        acquistaDialog.open();
     }
 
     private void updateFilters() {

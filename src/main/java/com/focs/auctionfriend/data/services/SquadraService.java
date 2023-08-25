@@ -16,7 +16,14 @@ import java.util.Optional;
 @Service
 public class SquadraService {
 
+    //FIXME: parametri non hardcoded
+
+    public static final int MAX_PORTIERI = 3;
+    public static final int MAX_DIFENSORI = 8;
+    public static final int MAX_CENTROCAMPISTI = 8;
+    public static final int MAX_ATTACCANTI = 6;
     private final SquadraRepository squadraRepository;
+    public final int MAX_GIOCATORI_ROSA = MAX_PORTIERI + MAX_CENTROCAMPISTI + MAX_DIFENSORI + MAX_ATTACCANTI;
 
     @PersistenceContext
     private EntityManager em;
@@ -61,28 +68,28 @@ public class SquadraService {
 
     public boolean hoSlotPorta(Squadra s) {
         String conteggio = getNumeroGiocatori(s);
-        return Integer.parseInt(String.valueOf(conteggio.charAt(0))) < 3;
+        return Integer.parseInt(String.valueOf(conteggio.charAt(0))) < MAX_PORTIERI;
     }
 
     public boolean hoSlotDifesa(Squadra s) {
         String conteggio = getNumeroGiocatori(s);
-        return Integer.parseInt(String.valueOf(conteggio.charAt(1))) < 8;
+        return Integer.parseInt(String.valueOf(conteggio.charAt(1))) < MAX_DIFENSORI;
     }
 
     public boolean hoSlotCentrocampo(Squadra s) {
         String conteggio = getNumeroGiocatori(s);
-        return Integer.parseInt(String.valueOf(conteggio.charAt(2))) < 8;
+        return Integer.parseInt(String.valueOf(conteggio.charAt(2))) < MAX_CENTROCAMPISTI;
     }
 
     public boolean hoSlotAttacco(Squadra s) {
         String conteggio = getNumeroGiocatori(s);
-        return Integer.parseInt(String.valueOf(conteggio.charAt(3))) < 6;
+        return Integer.parseInt(String.valueOf(conteggio.charAt(3))) < MAX_ATTACCANTI;
     }
 
     @Transactional
     public void rimuoviSquadraESvincolaCalciatori(Squadra squadra) {
         Squadra managedSquadra = em.find(Squadra.class, squadra.getId());
-        for (Giocatore daSvincolare:
+        for (Giocatore daSvincolare :
                 managedSquadra.getListaGiocatoriAcquistati()) {
             daSvincolare.setSquadraProprietaria(null);
             daSvincolare.setPrezzoAcquisto(0);
@@ -113,7 +120,7 @@ public class SquadraService {
     }
 
     @Transactional
-    public boolean acquistaGiocatore(Squadra squadraAcquirente, Giocatore giocatoreAcquistato, int prezzoAcquisto){
+    public boolean acquistaGiocatore(Squadra squadraAcquirente, Giocatore giocatoreAcquistato, int prezzoAcquisto) {
         Squadra managedSquadra = em.find(Squadra.class, squadraAcquirente.getId());
         Giocatore managedGiocatore = em.find(Giocatore.class, giocatoreAcquistato.getId());
 
@@ -123,6 +130,38 @@ public class SquadraService {
             managedGiocatore.setPrezzoAcquisto(prezzoAcquisto);
             managedGiocatore.setSquadraProprietaria(managedSquadra);
             return true;
+        }
+        return false;
+    }
+
+    //TODO: forse vale la pena completare le casistiche ed usare sempre questo
+    public boolean giocatoreAcquistabile(Squadra squadraAcquirente, Giocatore giocatoreAcquistato, int prezzoAcquisto) {
+        if (squadraAcquirente.getListaGiocatoriAcquistati().size() >= this.MAX_GIOCATORI_ROSA) return false;
+        if ((giocatoreAcquistato.getRuolo().equals(Ruolo.A) && !hoSlotAttacco(squadraAcquirente))
+                || (giocatoreAcquistato.getRuolo().equals(Ruolo.C) && !hoSlotCentrocampo(squadraAcquirente))
+                || (giocatoreAcquistato.getRuolo().equals(Ruolo.D) && !hoSlotDifesa(squadraAcquirente))
+                || (giocatoreAcquistato.getRuolo().equals(Ruolo.P) && !hoSlotPorta(squadraAcquirente))) return false;
+        if (squadraAcquirente.getCrediti() < prezzoAcquisto) {
+            return false;
+        }
+        if (checkFuturiAcquisti(this.MAX_GIOCATORI_ROSA - squadraAcquirente.getListaGiocatoriAcquistati().size(), squadraAcquirente.getCrediti(), prezzoAcquisto)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Controllo che prezzoAcquisto < crediti - slotRimanenti (escluso l'acquisto corrente)
+     *
+     * @param slotRimanenti
+     * @param creditiRimanenti
+     * @param prezzoAcquisto
+     * @return
+     */
+    public boolean checkFuturiAcquisti(int slotRimanenti, int creditiRimanenti, int prezzoAcquisto) {
+        if (prezzoAcquisto <= creditiRimanenti) {
+            int creditiDopoAcquisto = creditiRimanenti - prezzoAcquisto;
+            return creditiDopoAcquisto >= slotRimanenti - 1;
         }
         return false;
     }

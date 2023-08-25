@@ -45,8 +45,6 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
     Div statisticheDiv = new Div();
     Div creditiDiv = new Div();
 
-    private final int MAX_GIOCATORI_ROSA = 25;
-
     private Grid<Giocatore> giocatoriGrid = new Grid<>(Giocatore.class);
 
     public EditSquadraView(SquadraService squadraService, GiocatoreService giocatoreService) {
@@ -194,11 +192,8 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         content.add(filterLayout);
         content.add(giocatoriDialogGrid);
 
-        // Pulsante di acquisto
         Button acquistaButton = new Button("Acquista", event -> {
-            // Ottieni il giocatore selezionato dalla griglia del dialog
             Giocatore giocatoreSelezionato = giocatoriDialogGrid.asSingleSelect().getValue();
-
             if (giocatoreSelezionato != null) {
                 dialog.removeAll();
                 dialog.add(confirmPurchaseContent(giocatoreSelezionato, dialog));
@@ -244,11 +239,12 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
                 //Controllo se ho abbastanza crediti
 
                 if (squadra.getCrediti() < Integer.parseInt(purchasePrice)) {
-                    Notification.show("Crediti insufficienti").setPosition(Notification.Position.TOP_END);
+                    Notification notification = Notification.show("Crediti insufficienti", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
 
                 //Controllo se ho abbastanza crediti per i futuri acquisti
-                else if (!checkFuturiAcquisti(MAX_GIOCATORI_ROSA - squadra.getListaGiocatoriAcquistati().size() - 1, squadra.getCrediti(), Integer.parseInt(purchasePrice))) {
+                else if (!squadraService.checkFuturiAcquisti(squadraService.MAX_GIOCATORI_ROSA - squadra.getListaGiocatoriAcquistati().size(), squadra.getCrediti(), Integer.parseInt(purchasePrice))) {
                     Notification notification = Notification.show("Crediti insufficienti per completare altri acquisti", 5000, Notification.Position.TOP_END);
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
@@ -308,22 +304,6 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         dialog.setHeaderTitle("Conferma acquisto");
 
         return confirmPurchaseDialog;
-    }
-
-    /**
-     * Controllo che prezzoAcquisto < crediti - slotRimanenti (escluso l'acquisto corrente)
-     *
-     * @param slotRimanenti
-     * @param creditiRimanenti
-     * @param prezzoAcquisto
-     * @return
-     */
-    private boolean checkFuturiAcquisti(int slotRimanenti, int creditiRimanenti, int prezzoAcquisto) {
-        if (prezzoAcquisto <= creditiRimanenti) {
-            int creditiDopoAcquisto = creditiRimanenti - prezzoAcquisto;
-            return creditiDopoAcquisto >= slotRimanenti - 1;
-        }
-        return false;
     }
 
     @Override
