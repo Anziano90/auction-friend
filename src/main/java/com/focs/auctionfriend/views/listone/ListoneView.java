@@ -227,7 +227,10 @@ public class ListoneView extends Div {
 
         Button cancelButton = new Button("Annulla", e -> acquistaDialog.close());
 
-        acquistaDialog.add(select, importoAcquisto, new HorizontalLayout(confirmButton, cancelButton));
+        HorizontalLayout buttonsLayout = new HorizontalLayout(cancelButton, confirmButton);
+        buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        acquistaDialog.add(select, importoAcquisto, buttonsLayout);
         acquistaDialog.open();
     }
 

@@ -301,7 +301,7 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         confirmPurchaseDialog.add(purchasePriceField, buttonLayout);
 
-        dialog.setHeaderTitle("Conferma acquisto");
+        dialog.setHeaderTitle("Conferma");
 
         return confirmPurchaseDialog;
     }
