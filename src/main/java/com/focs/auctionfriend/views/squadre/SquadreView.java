@@ -137,7 +137,7 @@ public class SquadreView extends Div {
                 nuovaSquadra.setListaGiocatoriAcquistati(new ArrayList<>());
                 squadraService.saveSquadra(nuovaSquadra);
                 Div statisticheSquadraDiv = new Div();
-                statisticheSquadraDiv = updateStatisticheText(statisticheSquadraDiv,0,0,0,0);
+                statisticheSquadraDiv = updateStatisticheText(statisticheSquadraDiv, 0, 0, 0, 0);
                 listaDivRuoli.add(statisticheSquadraDiv);
                 dialog.close(); // Chiudi il dialog dopo la creazione
                 // Aggiorna la griglia delle squadre
@@ -165,7 +165,7 @@ public class SquadreView extends Div {
         List<Squadra> squadre = squadraService.getAllSquadre();
         listaDivRuoli = new ArrayList<>(squadre.size());
 
-        grid.addColumn(Squadra::getNome).setHeader("Nome");
+        grid.addColumn(Squadra::getNome).setHeader("Nome").setSortable(true);
         grid.addColumn(Squadra::getCrediti).setHeader("Crediti").setSortable(true);
 
         grid.addComponentColumn(squadra -> {
@@ -184,7 +184,7 @@ public class SquadreView extends Div {
             Button editButton = new Button("Dettaglio Squadra");
             editButton.addClickListener(e -> {
                 // Reindirizza all'URL della vista di modifica con il parametro squadraId come stringa
-                UI.getCurrent().navigate(EditSquadraView.class, squadra.getId()+"");
+                UI.getCurrent().navigate(EditSquadraView.class, squadra.getId() + "");
             });
             return editButton;
         }).setHeader("");
@@ -229,7 +229,6 @@ public class SquadreView extends Div {
 
         return grid;
     }
-
 
 
 }
