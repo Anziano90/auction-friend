@@ -166,7 +166,7 @@ public class SquadreView extends Div {
         listaDivRuoli = new ArrayList<>(squadre.size());
 
         grid.addColumn(Squadra::getNome).setHeader("Nome");
-        grid.addColumn(Squadra::getCrediti).setHeader("Crediti");
+        grid.addColumn(Squadra::getCrediti).setHeader("Crediti").setSortable(true);
 
         grid.addComponentColumn(squadra -> {
             Div statisticheSquadraDiv = new Div();

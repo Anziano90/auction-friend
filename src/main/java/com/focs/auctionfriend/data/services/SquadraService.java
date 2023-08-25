@@ -4,6 +4,8 @@ import com.focs.auctionfriend.data.entities.Giocatore;
 import com.focs.auctionfriend.data.entities.Squadra;
 import com.focs.auctionfriend.data.repositories.SquadraRepository;
 import com.focs.auctionfriend.data.util.Ruolo;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -189,6 +191,14 @@ public class SquadraService {
         return (int) squadra.getListaGiocatoriAcquistati().stream()
                 .filter(giocatore -> Ruolo.A.equals(giocatore.getRuolo()))
                 .count();
+    }
+
+    public boolean prezzoModificabile(Squadra squadra, Giocatore giocatore, int prezzo, int creditiSquadra) {
+        if (prezzo <= 0) return false;
+        if (creditiSquadra < prezzo) return false;
+        if (!this.checkFuturiAcquisti(this.MAX_GIOCATORI_ROSA - squadra.getListaGiocatoriAcquistati().size(), creditiSquadra, prezzo))
+            return false;
+        return true;
     }
 }
 

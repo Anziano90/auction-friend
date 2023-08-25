@@ -139,7 +139,7 @@ public class ListoneView extends Div {
         grid.addColumn(Giocatore::getRuolo).setHeader("Ruolo");
         grid.addColumn(Giocatore::getQuotaIniziale).setHeader("Quota iniziale");
         grid.addColumn(Giocatore::getPrezzoAcquisto).setHeader("Prezzo Acquisto");
-        grid.addColumn(Giocatore::getClub).setHeader("Club");
+        grid.addColumn(Giocatore::getClub).setHeader("Club").setSortable(true);
 
         grid.addColumn(giocatore -> {
             Squadra squadraProprietaria = giocatore.getSquadraProprietaria();
@@ -164,6 +164,8 @@ public class ListoneView extends Div {
     private void openEuroDialog(Giocatore giocatore) {
         Dialog acquistaDialog = new Dialog();
         acquistaDialog.setCloseOnOutsideClick(false);
+
+        acquistaDialog.setHeaderTitle(giocatore.getNome());
 
         Select<Squadra> select = new Select<>();
         select.setItems(squadraService.getAllSquadre());
@@ -210,9 +212,13 @@ public class ListoneView extends Div {
 
                     boolean flag = squadraService.acquistaGiocatore(squadraSelezionata, giocatore, Integer.parseInt(importoAcquisto.getValue()));
                     if (flag) {
+                        List<Giocatore> listaGiocatoriAggiornata = fetchPlayers();
+                        this.grid.setItems(listaGiocatoriAggiornata);
+                        acquistaDialog.close();
                         Notification notification = Notification.show("Acquisto completato con successo.", 5000, Notification.Position.TOP_END);
                         notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     } else {
+                        acquistaDialog.close();
                         Notification notification = Notification.show("Errore nel completamento dell'acquisto.", 5000, Notification.Position.TOP_END);
                         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }

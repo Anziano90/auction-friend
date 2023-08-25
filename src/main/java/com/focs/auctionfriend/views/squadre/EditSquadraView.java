@@ -7,10 +7,8 @@ import com.focs.auctionfriend.data.services.SquadraService;
 import com.focs.auctionfriend.data.util.Ruolo;
 import com.focs.auctionfriend.views.MainLayout;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.charts.model.Label;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -41,6 +39,8 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
     private final SquadraService squadraService;
     private final GiocatoreService giocatoreService;
     private Squadra squadra;
+
+    private boolean [] lastConfigFilters = {true, true, true, true};
 
     Div statisticheDiv = new Div();
     Div creditiDiv = new Div();
@@ -151,6 +151,11 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         Checkbox centrocampistaFilter = new Checkbox("C");
         Checkbox attaccanteFilter = new Checkbox("A");
 
+        portiereFilter.setValue(lastConfigFilters[0]);
+        difensoreFilter.setValue(lastConfigFilters[1]);
+        centrocampistaFilter.setValue(lastConfigFilters[2]);
+        attaccanteFilter.setValue(lastConfigFilters[3]);
+
         portiereFilter.setTooltipText("Portiere");
         difensoreFilter.setTooltipText("Difensore");
         centrocampistaFilter.setTooltipText("Centrocampista");
@@ -176,6 +181,12 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
 
         // Pulsante di ricerca
         Button cercaButton = new Button("Cerca", event -> {
+
+            lastConfigFilters[0] = portiereFilter.getValue();
+            lastConfigFilters[1] = difensoreFilter.getValue();
+            lastConfigFilters[2] = centrocampistaFilter.getValue();
+            lastConfigFilters[3] = attaccanteFilter.getValue();
+
             List<Giocatore> filteredGiocatori = giocatoreService.getGiocatoriFiltered(
                     nomeFilter.getValue(),
                     portiereFilter.getValue(),
@@ -193,6 +204,7 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
         content.add(giocatoriDialogGrid);
 
         Button acquistaButton = new Button("Acquista", event -> {
+
             Giocatore giocatoreSelezionato = giocatoriDialogGrid.asSingleSelect().getValue();
             if (giocatoreSelezionato != null) {
                 dialog.removeAll();
@@ -339,16 +351,28 @@ public class EditSquadraView extends VerticalLayout implements HasUrlParameter<S
             Button confirmButton = new Button(new Icon("lumo", "checkmark"));
             confirmButton.addClickListener(confirmEvent -> {
                 try {
+                    int vecchioPrezzo = giocatore.getPrezzoAcquisto();
                     int nuovoPrezzo = Integer.parseInt(prezzoField.getValue());
-                    giocatore.setPrezzoAcquisto(nuovoPrezzo);
-                    giocatoreService.updateGiocatore(giocatore); // Supponendo che ci sia un metodo per l'aggiornamento
-                    giocatoriGrid.getDataProvider().refreshItem(giocatore);
-                    Optional<Squadra> squadraAggiornata = squadraService.getSquadraById(squadra.getId());
-                    this.squadra = squadraAggiornata.get();
-                    giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati()); // Aggiorna la griglia
-                    Notification.show("Prezzo di acquisto aggiornato con successo.", 3000, Notification.Position.BOTTOM_START);
+                    if (squadraService.prezzoModificabile(this.squadra, giocatore, Integer.parseInt(prezzoField.getValue()), this.squadra.getCrediti() + vecchioPrezzo)) {
+                        giocatore.setPrezzoAcquisto(nuovoPrezzo);
+                        giocatoreService.updateGiocatore(giocatore);
+                        giocatoriGrid.getDataProvider().refreshItem(giocatore);
+                        Optional<Squadra> squadraAggiornata = squadraService.getSquadraById(squadra.getId());
+                        squadraAggiornata.get().setCrediti(squadraAggiornata.get().getCrediti() + vecchioPrezzo - nuovoPrezzo);
+                        squadraService.saveSquadra(squadraAggiornata.get());
+                        this.squadra = squadraAggiornata.get();
+                        giocatoriGrid.setItems(squadra.getListaGiocatoriAcquistati()); // Aggiorna la griglia
+                        updateCreditiText(squadraAggiornata.get().getCrediti(), 500); //Aggiorna i crediti correnti
+
+                        Notification notification = Notification.show("Prezzo di acquisto aggiornato con successo.", 5000, Notification.Position.TOP_END);
+                        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    } else {
+                        Notification notification = Notification.show("Prezzo non conforme", 5000, Notification.Position.TOP_END);
+                        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
                 } catch (NumberFormatException ex) {
-                    Notification.show("Inserisci un prezzo valido.", 3000, Notification.Position.BOTTOM_START);
+                    Notification notification = Notification.show("Errore di modifica prezzo.", 5000, Notification.Position.TOP_END);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             });
 
