@@ -135,16 +135,16 @@ public class ListoneView extends Div {
 
         List<Giocatore> giocatori = fetchPlayers();
 
-        grid.addColumn(Giocatore::getNome).setHeader("Nome");
-        grid.addColumn(Giocatore::getRuolo).setHeader("Ruolo");
-        grid.addColumn(Giocatore::getQuotaIniziale).setHeader("Quota iniziale");
-        grid.addColumn(Giocatore::getPrezzoAcquisto).setHeader("Prezzo Acquisto");
+        grid.addColumn(Giocatore::getNome).setHeader("Nome").setSortable(true);
+        grid.addColumn(Giocatore::getRuolo).setHeader("Ruolo").setSortable(true);
+        grid.addColumn(Giocatore::getQuotaIniziale).setHeader("Quota iniziale").setSortable(true);
+        grid.addColumn(Giocatore::getPrezzoAcquisto).setHeader("Prezzo Acquisto").setSortable(true);
         grid.addColumn(Giocatore::getClub).setHeader("Club").setSortable(true);
 
         grid.addColumn(giocatore -> {
             Squadra squadraProprietaria = giocatore.getSquadraProprietaria();
             return squadraProprietaria != null ? squadraProprietaria.getNome() : "";
-        }).setHeader("Squadra Proprietaria");
+        }).setHeader("Squadra Proprietaria").setSortable(true);
 
         grid.addComponentColumn(giocatore -> {
             Button euroButton = new Button(new Icon(VaadinIcon.EURO));
